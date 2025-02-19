@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "自定义导航栏",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "usingComponents": {
+    "navBar": "/components/navBar/navBar"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

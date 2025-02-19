@@ -1,0 +1,39 @@
+<!--index.wxml-->
+<!-- 顶部的透明的导航栏 -->
+<View class='nav'>
+        <navBar 
+        title='' 
+        background='rgba(0,0,0,0)' 
+        color='#fff' 
+        back="{{false}}" 
+        home="{{false}}" 
+        iconTheme='white' 
+        bindback="handlerGobackClick"
+        ></navBar>
+</View>
+<View class='main22'>
+    <View class='img'>此处为图片背景</View>
+</View>
+<!-- 底部的导航栏 -->
+<view class="bottom-nav">
+    <!-- 社区的按钮 -->
+    <view class="nav-item" data-page="community" bindtap="switchPage">
+      <image class="community-icon" src="{{ activeTab=='community' ? '/images/index/community_chosen.svg' : '/images/index/community_unchosen.svg' }}" mode="aspectFill" />
+      <text class="nav-item-text1">社区</text>
+    </view>
+    <!-- 首页的按钮 -->
+    <view class="circle"data-page="index" bindtap="switchPage">
+      <view class="green-circle">
+        <image class="icon-on-green-circle" src="{{ activeTab=='index' ? '/images/index/cat_white.svg' : '/images/index/cat_black.svg' }}" mode="aspectFit"></image>
+      </view>
+    </view>
+    <!-- 我的的按钮 -->
+    <view class="nav-item" data-page="me" bindtap="switchPage">
+      <image class="me-icon" src="{{ activeTab=='me' ? '/images/index/me_chosen.svg' : '/images/index/me_unchosen.svg' }}" mode="aspectFit" style="color: {{ activeTab=='me' ? '#00ADB5' : '#ffffff' }}"></image>
+      <text class="nav-item-text2">我的</text>
+    </view>
+  </view>
+
+
+
+

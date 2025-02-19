@@ -1,0 +1,105 @@
+/**index.wxss**/
+/* 头部透明的模板 */
+.main22 {
+  /* prettier-ignore */
+  height: 100vh;
+  background: #eeeeee;
+  font-size: 30rpx;
+  line-height: 60rpx;
+  text-align: center;
+}
+
+.nav {
+  height: 0;
+}
+
+.img {
+  width: 100%;
+  height: 700rpx;
+  line-height: 500rpx;
+  color: #fff;
+  background: linear-gradient(280deg, #fff 0%, red 50%, blue 80%);
+}
+
+/* 底部导航栏 */
+.bottom-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #222831;
+  padding: 10rpx 120rpx;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height:52px;
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  justify-content:center;
+}
+
+.bottom-nav .nav-item .community-icon {
+  width: 30px;    /* 设置图标的宽度 */
+  height: 30px;   /* 设置图标的高度 */
+}
+
+.bottom-nav .nav-item .nav-item-text {
+  font-size: 24rpx;  /* 设置文字的大小 */
+  margin-top: 5rpx;   /* 图标和文字之间的间距 */
+}
+
+.circle {
+  position: absolute; /* 绝对定位 */
+  left: 50%; /* 水平居中 */
+  transform: translateX(-48%); /* 使元素完全居中 */
+  width: 95px; /* 圆圈的直径 */
+  height: 95px; /* 圆圈的直径 */
+  background-color: #222831; /* 黑色背景 */
+  border-radius: 50%; /* 圆形 */
+}
+
+.green-circle {
+  width: 75px; /* 绿色圆圈的宽度，可根据需求调整 */
+  height: 75px; /* 绿色圆圈的高度，可根据需求调整 */
+  background-color:#00ADB5; /* 绿色背景 */
+  border-radius: 50%; /* 圆形 */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -53%); /* 使其在黑色圆圈内居中 */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.icon-on-green-circle{
+  width: 47px;
+  height: 34px;
+}
+
+.bottom-nav .nav-item .community-icon{
+  width: 35px;                  /* 设置图标的宽度 */
+  height: 35px;
+  margin-top:-1px;
+  margin-bottom:-3px;
+}
+
+.me-icon{
+  margin-top:5px;
+  width: 28px;                  /* 设置图标的宽度 */
+  height: 28px;
+}
+
+.bottom-nav .nav-item.text1 {
+  font-size: 24rpx;
+  margin-top: -5px;
+  margin-right:10px;
+}
+
+.bottom-nav .nav-item.text2 {
+  font-size: 24rpx;
+  margin-top: -7px;
+}
