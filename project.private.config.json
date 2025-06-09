@@ -19,16 +19,23 @@
     "ignoreDevUnusedFiles": true,
     "bigPackageSizeSupport": false
   },
-  "libVersion": "3.8.7",
+  "libVersion": "trial",
   "condition": {
     "miniprogram": {
       "list": [
         {
+          "name": "pages/object_borrow_list/object_borrow_list",
+          "pathName": "pages/object_borrow_list/object_borrow_list",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/task/task",
           "pathName": "pages/task/task",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/activity_list/activity_list",

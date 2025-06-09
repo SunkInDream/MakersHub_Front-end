@@ -54,9 +54,9 @@
         </view>
         <button hover-class ="none" style = "width: 150rpx; margin:0;" bindtap="navigateToDetail" data-event-id="{{item.event_id}}">详情</button>
       </view>
-    </block>
-        <image class="bottom-image" src="/images/activity_list/white_cat.svg"></image>
+    </block>   
   </view>
+
 </view>
 
 
