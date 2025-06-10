@@ -24,11 +24,25 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/duty_arrange/duty_arrange",
+          "pathName": "pages/duty_arrange/duty_arrange",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/schedule/schedule",
+          "pathName": "pages/schedule/schedule",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/editPage/editPage",
           "pathName": "pages/editPage/editPage",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "pages/me/me",
