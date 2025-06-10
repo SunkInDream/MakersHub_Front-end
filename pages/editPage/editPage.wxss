@@ -1,9 +1,22 @@
 /* pages/editPage/editPage.wxss */
-/* 页面容器 */
+
 button:active {
   filter:brightness(0.95);
 }
 
+/* 错误状态的样式 */
+.input.error {
+  border-color: rgba(227, 60, 100, 0.8);
+  box-shadow: 0 0 5px rgba(227, 60, 100, 0.4);
+}
+
+.error-text {
+  color: #E33C64;
+  font-size: 24rpx;
+  margin-top: -5rpx;
+}
+
+/* 页面容器 */
 .container {
   position: relative; /* 新增：创建定位上下文 */
   background-color: #222831;

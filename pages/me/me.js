@@ -10,7 +10,7 @@ Page({
     userInfo: {
       profile_photo: "/images/me/avatar.png",
       real_name: "新来的猫猫",
-      phone_num: "留下联系方式吧",
+      phone_num: "",
       motto: "什么都没有捏",
       score: 0,
       role: 0,

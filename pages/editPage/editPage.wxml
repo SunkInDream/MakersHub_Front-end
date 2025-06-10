@@ -38,7 +38,16 @@
     <!--电话的图标-->
       <text class="label">联系方式</text>
       <!--输入的容器-->
-      <input class="input {{isPhoneFocused ? 'focused' : ''}}" type="text" value="{{userInfo.phone_num}}" bindinput="updateContact" bindtap = "onPhoneFocused" bindblur = "onPhoneBlur" placeholder="{{userInfo.phone_num}}" />
+      <input 
+        class="input {{isPhoneFocused ? 'focused' : ''}} {{!isPhoneValid ? 'error' : ''}}" 
+        type="number" 
+        value="{{userInfo.phone_num}}" 
+        bindinput="updateContact" 
+        bindtap="onPhoneFocused" 
+        bindblur="onPhoneBlur" 
+        placeholder="{{userInfo.phone_num}}" 
+      />
+      <text wx:if="{{!isPhoneValid}}" class="error-text">{{phoneErrorMsg}}</text>
     </view>
 
     <!-- 个人签名部分 -->
@@ -54,7 +63,7 @@
       <button bindtap="saveChanges" style="width:488rpx;">保存更改</button>
     </view>
       <view wx:if="{{showSuccessMessage}}" class="success-message">
-        <text>保存成功！</text>
+        <text>保存成功</text>
       </view>
   </view>
 

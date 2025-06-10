@@ -19,6 +19,8 @@ Page({
     isNameChanged: false,
     isPhoneChanged: false,
     isMottoChanged: false,
+    isPhoneValid: true, // 电话号码是否有效的标志
+    phoneErrorMsg: "", // 电话错误信息
   },
 
   onLoad(options) {
@@ -62,12 +64,44 @@ Page({
        isNameChanged: true }
     );
   },
+
   // 更改用户联系电话
   updateContact(e) {
-    this.setData(
-      { 'userInfo.phone_num': e.detail.value ,
-       isPhoneChanged: true }
-    );
+    const phone = e.detail.value;
+    // 验证是否只有数字
+    const isNumeric = /^\d*$/.test(phone);
+    // 验证是否是11位数字或者是空的（允许用户清空输入）
+    const isValidLength = phone.length === 11 || phone.length === 0;
+    
+    // 设置验证状态
+    let isValid = true;
+    let errorMsg = "";
+    
+    if (phone && !isNumeric) {
+      isValid = false;
+      errorMsg = "有非法字符";
+      console.log("电话包含非数字字符");
+    } else if (phone && !isValidLength) {
+      isValid = false;
+      errorMsg = "请输入11位电话号码";
+      console.log("电话长度不是11位: " + phone.length);
+    }
+
+    console.log("电话验证: ", {
+      phone, 
+      isNumeric, 
+      isValidLength, 
+      isValid, 
+      errorMsg
+    });
+
+    this.setData({
+      // 如果有非法字符，不更新phone_num值，但仍然更新验证状态
+      ...(!isNumeric ? {} : {'userInfo.phone_num': phone}),
+      isPhoneChanged: isNumeric ? true : this.data.isPhoneChanged,
+      isPhoneValid: isValid,
+      phoneErrorMsg: errorMsg
+    });
   },
   // 更改用户座右铭
   updateMotto(e) {
@@ -127,6 +161,14 @@ Page({
   //   });
   // },
   saveChanges() {
+    // 首先验证电话号码
+    if (!this.data.isPhoneValid) {
+      wx.showToast({ 
+        title: "请输入正确的电话号码", 
+        icon: "none" 
+      });
+      return; // 如果电话无效，不继续执行保存
+    }
     const uploadAndSaveProfile = () => {
       // 准备更新的数据
       const updateData = {
@@ -165,11 +207,11 @@ Page({
               wx.navigateBack({ delta: 1 });
             }, 1500);
           } else {
-            wx.showToast({ title: "保存失败", icon: "none" });
+            wx.showToast({ title: "保存失败", icon: "error" });
           }
         },
         fail: () => {
-          wx.showToast({ title: "保存失败", icon: "none" });
+          wx.showToast({ title: "保存失败", icon: "error" });
         }
       });
     };
@@ -189,9 +231,7 @@ Page({
           if (upRes.statusCode === 200 && data.data.profile_photo) {
             // 更新头像URL并继续更新其他资料
             this.setData({ 
-              userInfo: {
-                avatar: data.data.profile_photo 
-              }
+              'userInfo.avatar': data.data.profile_photo 
             });
             uploadAndSaveProfile();
           } else {
