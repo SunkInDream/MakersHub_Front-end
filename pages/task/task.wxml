@@ -1,62 +1,78 @@
 <!-- pages/task/task.wxml -->
 <view class="container">
-  <navBar 
-    title='发布任务' 
-    background='#222831' 
-    color='#fff' 
-    back="{{true}}" 
-    home="{{true}}" 
-    iconTheme='white' 
-    bindback="handlerGobackClick" 
+  <navBar     
+    title='发布任务'
+    background='#222831'
+    color='#fff'
+    back="{{true}}"
+    home="{{true}}"
+    iconTheme='white'
+    bindback="handlerGobackClick"
     bindhome="handlerGohomeClick">
   </navBar>
 
   <view class="form-container">
-
-    <text class="form-label ">任务名称</text>
-    <input class="input-field {{isNameFocused ? 'focused' : ''}}" placeholder="请输入任务名称" data-field="taskName"  bindtap = "onNameFocused" bindblur = "onNameBlur"/>
     
+    <text class="form-label">任务名称</text>
+    <input 
+      class="input-field {{isNameFocused ? 'focused' : ''}}" 
+      placeholder="请输入任务名称" 
+      data-field="task_name"
+      bindinput="onInput"
+      bindtap="onNameFocused" 
+      bindblur="onNameBlur"
+    />
+        
     <text class="form-label">负责人</text>
-    <input class="input-field {{isDirectorFocused ? 'focused' : ''}}" placeholder="请输入负责人" data-field="responsible" bindtap = "onDirectorFocused" bindblur = "onDirectorBlur"/>
-    
+    <input 
+      class="input-field {{isDirectorFocused ? 'focused' : ''}}" 
+      placeholder="请输入负责人" 
+      data-field="name"
+      bindinput="onInput"
+      bindtap="onDirectorFocused" 
+      bindblur="onDirectorBlur"
+    />
+        
     <text class="form-label">任务内容</text>
-    <textarea class="input-field textarea-field {{isDescriptionFocused ? 'focused' : ''}}" placeholder="请输入任务内容" data-field="taskContent" bindtap = "onDescriptionFocused" bindblur = "onDescriptionBlur"/>
-    
+    <textarea 
+      class="input-field textarea-field {{isDescriptionFocused ? 'focused' : ''}}" 
+      placeholder="请输入任务内容" 
+      data-field="content"
+      bindinput="onInput"
+      bindtap="onDescriptionFocused" 
+      bindblur="onDescriptionBlur"
+    />
+        
     <text class="form-label">任务截止时间</text>
     <view class="time-picker-group">
-      <picker 
-        mode="selector" 
-        range="{{years}}" 
-        bindchange="onYearChange"
-        data-type="deadline">  <!-- 新增 -->
+      <picker
+        mode="selector"
+        range="{{years}}"
+        bindchange="onYearChange">
         <view>{{selectedYear || '年份'}}</view>
       </picker>
-      <picker 
-        mode="selector" 
-        range="{{months}}" 
-        bindchange="onMonthChange"
-        data-type="deadline">  <!-- 新增 -->
+      <picker
+        mode="selector"
+        range="{{months}}"
+        bindchange="onMonthChange">
         <view>{{selectedMonth || '月份'}}</view>
       </picker>
-      <picker 
-        mode="selector" 
-        range="{{days}}" 
-        bindchange="onDayChange"
-        data-type="deadline">  <!-- 新增 -->
+      <picker
+        mode="selector"
+        range="{{days}}"
+        bindchange="onDayChange">
         <view>{{selectedDay || '日期'}}</view>
       </picker>
-      <picker 
-        mode="selector" 
-        range="{{hours}}" 
-        bindchange="onHourChange"
-        data-type="deadline"> 
+      <picker
+        mode="selector"
+        range="{{hours}}"
+        bindchange="onHourChange">
         <view>{{selectedHour || '小时'}}</view>
       </picker>
-      <picker 
-        mode="selector" 
-        range="{{minutes}}" 
-        bindchange="onMinuteChange"
-        data-type="deadline"> 
+      <picker
+        mode="selector"
+        range="{{minutes}}"
+        bindchange="onMinuteChange">
         <view>{{selectedMinute || '分钟'}}</view>
       </picker>
     </view>
