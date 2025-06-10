@@ -1,4 +1,4 @@
-/* pages/MyPoints/MyPoints.wxss */
+/* pages/object_borrow_list/object_borrow_list.wxss */
 
 page {
   background-color: #222831;
