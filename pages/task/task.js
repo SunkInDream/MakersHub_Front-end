@@ -1,4 +1,6 @@
-
+const API_BASE = 'http://146.56.227.73:8000'
+const TOKEN_KEY = 'auth_token'
+const token = wx.getStorageSync(TOKEN_KEY)
 // pages/task/task.js
 Page({
   data: {
@@ -125,49 +127,73 @@ Page({
     });
   },
 
-  onSubmit() {/*提交按钮的逻辑*/
-    const { taskName, responsible, taskContent, selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute } = this.data;
-
-    if (!taskName || !responsible || !taskContent || !selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) {
+  onSubmit() {
+    console.log('调试信息 - 当前数据状态:');
+    console.log('task_name:', this.data.task_name);
+    console.log('name:', this.data.name);  
+    console.log('content:', this.data.content);
+    console.log('selectedYear:', this.data.selectedYear);
+    console.log('selectedMonth:', this.data.selectedMonth);
+    console.log('selectedDay:', this.data.selectedDay);
+    console.log('selectedHour:', this.data.selectedHour);
+    console.log('selectedMinute:', this.data.selectedMinute);
+    
+    const { task_name, name, content, selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute } = this.data;
+    
+    if (!task_name || !name || !content || !selectedYear || !selectedMonth || !selectedDay || !selectedHour || !selectedMinute) {
       wx.showToast({
         title: '请填写完整信息',
         icon: 'none',
       });
       return;
     }
-
+    
     const deadline = `${selectedYear}-${selectedMonth}-${selectedDay} ${selectedHour}:${selectedMinute}`;
-
-
-   
-
-    console.log('任务信息：', {
-      task_name,
-      name,
-      content,
-      deadline,
+    
+    // 更新 deadline 到 data 中
+    this.setData({
+      deadline: deadline
     });
-    wx.request({/*上传数据*/
-      url: 'url',
-      method:'POST',
-      data:{
-        task_name:this.data.task_name,
-        name:this.data.name,
-        content:this.data.content,
-        deadline:this.data.deadline
+    
+    console.log('任务信息:', {
+      task_name: this.data.task_name,
+      name: this.data.name,
+      content: this.data.content,
+      deadline: deadline,
+    });
+    
+    wx.request({
+      url: `${API_BASE}/api/tasks`, // 修改这里：从 /users/profile 改为 /api/tasks
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      data: {
+        task_name: this.data.task_name,
+        name: this.data.name,
+        content: this.data.content,
+        deadline: deadline,
+        priority: 2 // 添加优先级字段，默认为中等优先级
       },
       success: (res) => {
-        console.log('数据上传成功：', res.data);
-        this.setData({
-          message: '数据上传成功！',
+        console.log('任务创建成功:', res.data);
+        wx.showToast({
+          title: '任务创建成功',
+          icon: 'success'
         });
+        // 可以选择返回上一页或清空表单
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1500);
       },
       fail: (err) => {
-        console.error('数据上传失败：', err);
-        this.setData({
-          message: '数据上传失败，请稍后重试！'
+        console.error('任务创建失败:', err);
+        wx.showToast({
+          title: '创建失败,请稍后重试',
+          icon: 'none'
         });
       }
-    })
-  },
+    });
+  }
 });

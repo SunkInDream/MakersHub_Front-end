@@ -38,6 +38,20 @@
           "scene": null
         },
         {
+          "name": "pages/task/task",
+          "pathName": "pages/task/task",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/duty_application/duty_application",
+          "pathName": "pages/duty_application/duty_application",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/editPage/editPage",
           "pathName": "pages/editPage/editPage",
           "query": "",
