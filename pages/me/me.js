@@ -27,22 +27,7 @@ Page({
   },
 
   onShow() {
-    const updated = wx.getStorageSync("updatedUserInfo");
-    if (updated) {
-      console.log("🟢 onShow 获取到更新数据:", updated);
-      this.setData({
-        userInfo: {
-          ...this.data.userInfo,
-          real_name: updated.real_name,
-          phone_num: updated.phone_num,
-          profile_photo: updated.profile_photo,
-          motto: updated.motto,
-        },
-      });
-      wx.removeStorageSync("updatedUserInfo");
-    } else {
       this.fetchUserProfile();
-    }
   },
 
   fetchUserProfile() {
@@ -54,12 +39,13 @@ Page({
         Authorization: `Bearer ${token}`,
       },
       success: (res) => {
+        console.log("后端返回个人主页: " + JSON.stringify(res, null, 2));
         if (res.statusCode === 200 && res.data.data) {
           const info = res.data.data;
           this.setData({
             userInfo: {
               profile_photo:
-                info.profile_photo || this.data.userInfo.profile_photo,
+              `${info.profile_photo}?t=${Date.now()}` || this.data.userInfo.profile_photo,
               real_name: info.real_name || this.data.userInfo.real_name,
               phone_num: info.phone_num || this.data.userInfo.phone_num,
               motto: info.motto || this.data.userInfo.motto,
@@ -74,9 +60,16 @@ Page({
   },
 
   goToEditPage() {
-    const { real_name, phone_num, profile_photo, motto } = this.data.userInfo;
+    // 进行加密，避免中文带来的解析错误
+    const params = {
+      real_name: encodeURIComponent(this.data.userInfo.real_name || ''),
+      phone_num: encodeURIComponent(this.data.userInfo.phone_num || ''),
+      avatar: encodeURIComponent(this.data.userInfo.profile_photo || ''),
+      motto: encodeURIComponent(this.data.userInfo.motto || ''),
+    };
+    console.log("userInfo 编码后 params: ", JSON.stringify(params, null, 2));
     wx.navigateTo({
-      url: `/pages/editPage/editPage?real_name=${real_name}&phone_num=${phone_num}&avatar=${profile_photo}&motto=${motto}`,
+      url: `/pages/editPage/editPage?real_name=${params.real_name}&phone_num=${params.phone_num}&avatar=${params.avatar}&motto=${params.motto}`,
     });
   },
 

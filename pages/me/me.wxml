@@ -11,6 +11,7 @@
         iconTheme='white' 
         bindback="handlerGobackClick"
         showEditIcon="{{true}}"
+        bindedit="goToEditPage"
         ></navBar>
   </view>
   <!-- 用户信息区域,用于展示用户的姓名，联系方式，个人签名等信息 -->
