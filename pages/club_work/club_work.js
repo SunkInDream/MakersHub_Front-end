@@ -57,5 +57,13 @@ Page({
       wx.navigateTo({
         url: '/pages/operation_maintenance_work_page/operation_maintenance_work_page',
       })
+  },
+  // 在 Page({...}) 中添加此函数即可
+  jumpToDutyApplicationPage: function () {
+    console.log('跳转值班申请页面');
+    wx.navigateTo({
+      url: '/pages/duty_application/duty_application',
+    });
   }
+
 })
