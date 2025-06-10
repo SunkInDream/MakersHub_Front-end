@@ -120,10 +120,10 @@ Page({
               this.setData({
                 avatar: tempFilePaths,
               });
-              if(this.data.photoPath!=undefined) {
+              if(this.data.avatar!=undefined) {
                 console.log("wx.uploadFile")
                 wx.uploadFile({
-                  filePath: this.data.photoPath,
+                  filePath: this.data.avatar,
                   name: 'file',
                   url: API_BASE + '/users/profile-photo',
                   header: {

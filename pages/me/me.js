@@ -44,8 +44,7 @@ Page({
       success: res => {
         console.log('[me] 用户信息请求响应:', res)
         if (res.statusCode === 200 && res.data) {
-          const info = res.data.data
-          
+          const info = res.data.data          
           this.setData({
             userInfo: {
               state: info.state || 1,
@@ -54,7 +53,7 @@ Page({
               motto: info.motto || this.data.userInfo.motto,
               score: info.score || 0,
               role: info.role ,
-              profile_photo: info.profile_photo ? info.profile_photo : this.data.userInfo.profile_photo
+              profile_photo: info.profile_photo || this.data.userInfo.profile_photo
             },
             isAssociationMember: info.role > 0
           });
