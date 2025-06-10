@@ -20,7 +20,7 @@
     <view class="circle">
       <!--头像的图片部分-->
       <view class="avatar-section">
-        <image class="avatar" src="{{avatar}}" mode="aspectFit" bindtap = "editAvatar"/>
+        <image class="avatar" src="{{userInfo.avatar}}" mode="aspectFit" bindtap = "editAvatar"/>
         <!--头像的编辑图标-->
         <image class="edit-icon" src="/images/editPage/edit picture.svg" bindtap="editAvatar" />
       </view>
@@ -30,7 +30,7 @@
     <!--我的的图标-->
       <text class="label">真实姓名</text>
       <!--输入容器-->
-      <input class="input {{isNameFocused ? 'focused' : ''}}"  type="text" value="{{real_name}}" bindtap = "onNameFocused" bindblur = "onNameBlur"bindinput="updateRealName" placeholder="请输入真实姓名" />
+      <input class="input {{isNameFocused ? 'focused' : ''}}"  type="text" value="{{userInfo.real_name}}" bindtap = "onNameFocused" bindblur = "onNameBlur"bindinput="updateRealName" placeholder="{{userInfo.real_name}}" />
     </view>
 
     <!-- 联系方式 -->
@@ -38,7 +38,7 @@
     <!--电话的图标-->
       <text class="label">联系方式</text>
       <!--输入的容器-->
-      <input class="input {{isPhoneFocused ? 'focused' : ''}}" type="text" value="{{phone_num}}" bindinput="updateContact" bindtap = "onPhoneFocused" bindblur = "onPhoneBlur" placeholder="请输入联系方式" />
+      <input class="input {{isPhoneFocused ? 'focused' : ''}}" type="text" value="{{userInfo.phone_num}}" bindinput="updateContact" bindtap = "onPhoneFocused" bindblur = "onPhoneBlur" placeholder="{{userInfo.phone_num}}" />
     </view>
 
     <!-- 个人签名部分 -->
@@ -46,7 +46,7 @@
     <!--个性的图标-->
       <text class="label">个人签名</text>
       <!--输入容器-->
-      <textarea class="input {{isMottoFocused ? 'focused' : ''}}"  style = "width: 94%; height: 210rpx;" value="{{signature}}" bindinput="updateSignature" bindtap = "onMottoFocused" bindblur = "onMottoBlur" placeholder="请输入个人签名" />
+      <textarea class="input {{isMottoFocused ? 'focused' : ''}}"  style = "width: 94%; height: 210rpx;" value="{{userInfo.motto}}" bindinput="updateMotto" bindtap = "onMottoFocused" bindblur = "onMottoBlur" placeholder="{{userInfo.motto}}" />
     </view>
 
     <!-- 保存按钮 -->

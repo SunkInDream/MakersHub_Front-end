@@ -5,55 +5,36 @@ const token = wx.getStorageSync("auth_token");
 
 Page({
   data: {
-    real_name: "",
-    phone_num: "",
-    avatar: "",
-    signature: "",
-    photoPath: "",
+    userInfo: {
+      real_name: "",
+      phone_num: "",
+      avatar: "",
+      motto: "",
+    },
+    tempAvatar: "",
+    // oldAvatar: "",
     isNameFocused: false,
     isPhoneFocused: false,
     isMottoFocused: false,
+    isNameChanged: false,
+    isPhoneChanged: false,
+    isMottoChanged: false,
   },
 
   onLoad(options) {
-    // 先尝试从后台获取最新用户信息
-    wx.request({
-      url: `${API_BASE}/users/profile`,
-      method: "GET",
-      header: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      success: (res) => {
-        if (res.statusCode === 200 && res.data.data) {
-          const info = res.data.data;
-          this.setData({
-            real_name: info.real_name || "",
-            phone_num: info.phone_num || "",
-            avatar: info.profile_photo || "",
-            signature: info.motto || "",
-          });
-        } else {
-          // 后台没数据时，退回到传参
-          this._initFromOptions(options);
-        }
-      },
-      fail: () => {
-        // 请求失败时，也退回到传参
-        this._initFromOptions(options);
-      },
-    });
-  },
-
-  // 从 navigateTo 传过来的 options 初始化
-  _initFromOptions(options) {
+    // 加载从me页面传来的数据
     this.setData({
-      real_name: options.real_name || "",
-      phone_num: options.phone_num || "",
-      avatar: options.avatar || "",
-      signature: options.motto || "",
+      userInfo: {
+        real_name: options.real_name ? decodeURIComponent(options.real_name) : "",
+        phone_num: options.phone_num ? decodeURIComponent(options.phone_num) : "",
+        avatar: options.avatar ? decodeURIComponent(options.avatar) : "",
+        motto: options.motto ? decodeURIComponent(options.motto) : ""
+      }
     });
+    // 输出从me页面传送来的数据
+    console.log('接收到的参数:', JSON.stringify(this.data.userInfo, null, 2));
   },
+  
 
   onNameFocused() {
     this.setData({ isNameFocused: true });
@@ -74,16 +55,29 @@ Page({
     this.setData({ isMottoFocused: false });
   },
 
+  // 更改用户真实姓名
   updateRealName(e) {
-    this.setData({ real_name: e.detail.value });
+    this.setData(
+      { 'userInfo.real_name': e.detail.value ,
+       isNameChanged: true }
+    );
   },
+  // 更改用户联系电话
   updateContact(e) {
-    this.setData({ phone_num: e.detail.value });
+    this.setData(
+      { 'userInfo.phone_num': e.detail.value ,
+       isPhoneChanged: true }
+    );
   },
-  updateSignature(e) {
-    this.setData({ signature: e.detail.value });
+  // 更改用户座右铭
+  updateMotto(e) {
+    this.setData(
+      { 'userInfo.motto': e.detail.value ,
+       isMottoChanged: true }
+    );
   },
 
+  // 修改头像选择函数，只存储本地临时路径，暂不上传
   editAvatar() {
     wx.chooseMedia({
       count: 1,
@@ -91,52 +85,127 @@ Page({
       sourceType: ["album", "camera"],
       success: (res) => {
         const path = res.tempFiles[0].tempFilePath;
-        this.setData({ avatar: path, photoPath: path });
-        wx.uploadFile({
-          filePath: path,
-          name: "file",
-          url: `${API_BASE}/users/profile-photo`,
-          header: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-          success: (upRes) => {
-            const data = JSON.parse(upRes.data);
-            if (upRes.statusCode === 200 && data.profile_photo) {
-              const date = Date.now();
-              this.setData({ avatar: `${data.profile_photo}?t=${date}` });
-              wx.showToast({ title: "上传成功" });
-            } else {
-              wx.showToast({ title: "上传失败", icon: "none" });
-            }
-          },
+        this.setData({
+          // oldAvatar: this.data.userInfo.avatar,
+          'userInfo.avatar': path,
+          tempAvatar: path // 保存临时文件路径
         });
+        // 输出更新图片
+        console.log("选择新头像临时路径: ", this.data.tempAvatar);
+        // console.log("暂存老头像: ", this.data.oldAvatar);
       },
     });
   },
-
+  // editAvatar() {
+  //   wx.chooseMedia({
+  //     count: 1,
+  //     mediaType: ["image"],
+  //     sourceType: ["album", "camera"],
+  //     success: (res) => {
+  //       const path = res.tempFiles[0].tempFilePath;
+  //       this.setData({ avatar: path, photoPath: path });
+  //       wx.uploadFile({
+  //         filePath: path,
+  //         name: "file",
+  //         url: `${API_BASE}/users/profile-photo`,
+  //         header: {
+  //           "Content-Type": "multipart/form-data",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         success: (upRes) => {
+  //           const data = JSON.parse(upRes.data);
+  //           if (upRes.statusCode === 200 && data.profile_photo) {
+  //             const date = Date.now();
+  //             this.setData({ avatar: `${data.profile_photo}?t=${date}` });
+  //             wx.showToast({ title: "上传成功" });
+  //           } else {
+  //             wx.showToast({ title: "上传失败", icon: "none" });
+  //           }
+  //         },
+  //       });
+  //     },
+  //   });
+  // },
   saveChanges() {
-    const { real_name, phone_num, avatar, signature } = this.data;
-    const updatedData = {
-      real_name,
-      phone_num,
-      profile_photo: avatar,
-      motto: signature,
+    const uploadAndSaveProfile = () => {
+      // 准备更新的数据
+      const updateData = {
+        data: {}
+      };
+      if(this.data.userInfo.real_name) {
+        updateData.data.real_name = this.data.userInfo.real_name;
+      }
+      if (this.data.userInfo.phone_num) {
+        updateData.data.phone_num = this.data.userInfo.phone_num;
+      }
+      if (this.data.userInfo.motto) {
+        updateData.data.motto = this.data.userInfo.motto;
+      }
+      // 图片没有被更改过
+      if(this.data.userInfo.avatar) {
+        updateData.data.profile_photo = this.data.userInfo.avatar;
+      }
+
+      // 将更新好的用户除头像外的数据从/users/profile发出
+      wx.request({
+        url: `${API_BASE}/users/profile`,
+        method: "PATCH",
+        header: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        data: updateData,
+        success: (res) => {
+          if (res.statusCode === 200) {
+            // 保存成功后的操作
+            wx.showToast({ title: "保存成功" });
+            // 直接返回上一页，让me页面重新获取数据
+            // wx.setStorageSync('UserInfo', updateData);
+            setTimeout(() => {
+              wx.navigateBack({ delta: 1 });
+            }, 1500);
+          } else {
+            wx.showToast({ title: "保存失败", icon: "none" });
+          }
+        },
+        fail: () => {
+          wx.showToast({ title: "保存失败", icon: "none" });
+        }
+      });
     };
-    wx.setStorageSync("updatedUserInfo", updatedData);
-    wx.request({
-      url: `${API_BASE}/users/profile`,
-      method: "PUT",
-      header: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      data: updatedData,
-      complete: () => {
-        wx.showToast({ title: "保存完成" });
-        wx.navigateBack({ delta: 1 });
-      },
-    });
+    
+    if (this.data.tempAvatar) {
+      wx.uploadFile({
+        filePath: this.data.tempAvatar,
+        name: "file",
+        url: `${API_BASE}/users/profile-photo`,
+        header: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        success: (upRes) => {
+          const data = JSON.parse(upRes.data);
+          console.log("后端返回: ", data);
+          if (upRes.statusCode === 200 && data.data.profile_photo) {
+            // 更新头像URL并继续更新其他资料
+            this.setData({ 
+              userInfo: {
+                avatar: data.data.profile_photo 
+              }
+            });
+            uploadAndSaveProfile();
+          } else {
+            wx.showToast({ title: "头像上传失败", icon: "error"});
+          }
+        },
+        fail: () => {
+          wx.showToast({ title: "头像上传失败", icon: "error" });
+        }
+      });
+    } else {
+      // 没有新头像，直接更新其他资料
+      uploadAndSaveProfile();
+    }
   },
 
   handlerGobackClick() {
