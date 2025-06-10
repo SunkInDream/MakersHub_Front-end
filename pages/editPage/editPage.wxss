@@ -119,3 +119,12 @@ textarea.input {
   border-radius: 8rpx;
   text-align: center;
 }
+.icon-in-bottom{
+  width: 440rpx;
+  height: 174rpx;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+}

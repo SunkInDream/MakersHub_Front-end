@@ -1,9 +1,16 @@
 <!-- 值班申请页面 WXML 文件 -->
 <view class="container">
-  <!-- 顶部标题 -->
-  <view class="header">
-    <text class="title">值班申请</text>
-  </view>
+  <navBar 
+    title='值班申请' 
+    background='#222831' 
+    color='#fff' 
+    back="{{true}}" 
+    home="{{true}}" 
+    iconTheme='white' 
+    bindback="handlerGobackClick" 
+    bindhome="handlerGohomeClick">
+  </navBar>
+
 
   <!-- 表单容器 -->
   <view class="form-container">

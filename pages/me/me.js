@@ -1,141 +1,150 @@
 // pages/me/me.js
-const API_BASE = 'http://146.56.227.73:8000'
-const TOKEN_KEY = 'auth_token' // 统一使用你登录时设置的 key
-const token = wx.getStorageSync(TOKEN_KEY)
-console.log('本地获取到的 token:', token)
+
+const API_BASE = "http://146.56.227.73:8000";
+const TOKEN_KEY = "auth_token";
+const token = wx.getStorageSync(TOKEN_KEY);
 
 Page({
   data: {
-    textToCopy: '',
-    
+    textToCopy: "",
     userInfo: {
-      profile_photo: '/images/me/avatar.png',
-      real_name: '新来的猫猫',
-      phone_num: '留下联系方式吧',
-      motto: '什么都没有捏',
+      profile_photo: "/images/me/avatar.png",
+      real_name: "新来的猫猫",
+      phone_num: "留下联系方式吧",
+      motto: "什么都没有捏",
       score: 0,
-      role: 0
+      role: 0,
     },
     isAssociationMember: 1,
-
     itemHandler: [
-      'goToBorrowPage',
-      'goToProjectPage',
-      'goToVenuePage',
-      'goToHonorWallPage'
+      "goToBorrowPage",
+      "goToProjectPage",
+      "goToVenuePage",
+      "goToHonorWallPage",
     ],
-    items: ['我的借物', '我的项目', '我的场地', '荣誉墙', '协会工作'],
-    activeTab: 'me'
+    items: ["我的借物", "我的项目", "我的场地", "荣誉墙", "协会工作"],
+    activeTab: "me",
   },
 
-  onLoad() {
-    this.fetchUserProfile()
+  onShow() {
+    const updated = wx.getStorageSync("updatedUserInfo");
+    if (updated) {
+      console.log("🟢 onShow 获取到更新数据:", updated);
+      this.setData({
+        userInfo: {
+          ...this.data.userInfo,
+          real_name: updated.real_name,
+          phone_num: updated.phone_num,
+          profile_photo: updated.profile_photo,
+          motto: updated.motto,
+        },
+      });
+      wx.removeStorageSync("updatedUserInfo");
+    } else {
+      this.fetchUserProfile();
+    }
   },
 
   fetchUserProfile() {
-    console.log("初始用户默认信息: " + JSON.stringify(this.data.userInfo, null, 2));
     wx.request({
       url: `${API_BASE}/users/profile`,
-      method: 'GET',
+      method: "GET",
       header: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
-      success: res => {
-        console.log('[me] 用户信息请求响应:', res)
-        if (res.statusCode === 200 && res.data) {
-          const info = res.data.data          
+      success: (res) => {
+        if (res.statusCode === 200 && res.data.data) {
+          const info = res.data.data;
           this.setData({
             userInfo: {
-              state: info.state || 1,
+              profile_photo:
+                info.profile_photo || this.data.userInfo.profile_photo,
               real_name: info.real_name || this.data.userInfo.real_name,
               phone_num: info.phone_num || this.data.userInfo.phone_num,
               motto: info.motto || this.data.userInfo.motto,
-              score: info.score || 0,
-              role: info.role ,
-              profile_photo: info.profile_photo || this.data.userInfo.profile_photo
+              score: info.score || this.data.userInfo.score,
+              role: info.role || this.data.userInfo.role,
             },
-            isAssociationMember: info.role > 0
+            isAssociationMember: info.role > 0,
           });
-          console.log("服务器返回用户信息: " + JSON.stringify(this.data.userInfo, null, 2));
-        } else {
-          wx.showToast({ title: '获取用户信息失败', icon: 'none' })
         }
       },
-      fail: err => {
-        console.error('[me] 请求失败:', err)
-        wx.showToast({ title: '请求失败，请检查网络', icon: 'none' })
-      }
-    })
-  },
-
-  copyPhone() {
-    wx.setClipboardData({
-      data: this.data.userInfo.phone_num,
-      success: () => {
-        wx.showToast({ title: '电话已复制', icon: 'success' })
-      },
-      fail: () => {
-        wx.showToast({ title: '复制失败', icon: 'none' })
-      }
-    })
-  },
-
-  copySignature() {
-    wx.setClipboardData({
-      data: this.data.userInfo.motto,
-      success: () => {
-        wx.showToast({ title: '签名已复制', icon: 'success' })
-      },
-      fail: () => {
-        wx.showToast({ title: '复制失败', icon: 'none' })
-      }
-    })
-  },
-
-  navigateToPage(url) {
-    wx.navigateTo({
-      url,
-      fail: () => wx.showToast({ title: '页面跳转失败', icon: 'none' })
-    })
-  },
-
-  switchPage(e) {
-    const target = e.currentTarget.dataset.page
-    if (target === this.data.activeTab) return
-
-    let url = ''
-    if (target === 'community') url = '/pages/community/community'
-    else if (target === 'index') url = '/pages/index/index'
-    else if (target === 'me') url = '/pages/me/me'
-
-    wx.redirectTo({
-      url,
-      fail: () => wx.showToast({ title: '页面跳转失败', icon: 'none' })
-    })
+    });
   },
 
   goToEditPage() {
-    this.navigateToPage('/pages/editPage/editPage')
+    const { real_name, phone_num, profile_photo, motto } = this.data.userInfo;
+    wx.navigateTo({
+      url: `/pages/editPage/editPage?real_name=${real_name}&phone_num=${phone_num}&avatar=${profile_photo}&motto=${motto}`,
+    });
+  },
+
+  navigateToPage(url) {
+    wx.navigateTo({ url });
   },
 
   goToMyPointPage() {
-    this.navigateToPage('/pages/MyPoints/MyPoints')
+    this.navigateToPage("/pages/MyPoints/MyPoints");
   },
 
   goToBorrowPage() {
-    this.navigateToPage('/pages/borrow/borrow')
+    this.navigateToPage("/pages/borrow/borrow");
   },
+
   goToProjectPage() {
-    this.navigateToPage('/pages/project/project')
+    this.navigateToPage("/pages/project/project");
   },
+
   goToVenuePage() {
-    this.navigateToPage('/pages/venue/venue')
+    this.navigateToPage("/pages/venue/venue");
   },
+
   goToHonorWallPage() {
-    this.navigateToPage('/pages/honor-wall/honor-wall')
+    this.navigateToPage("/pages/honor-wall/honor-wall");
   },
+
   goToWorkPage() {
-    this.navigateToPage('/pages/club_work/club_work')
-  }
-})
+    this.navigateToPage("/pages/club_work/club_work");
+  },
+
+  copyPhone() {
+    const phone = this.data.userInfo.phone_num;
+    if (!phone) {
+      return wx.showToast({ title: "暂无联系方式", icon: "none" });
+    }
+    wx.setClipboardData({
+      data: phone,
+      success: () => wx.showToast({ title: "电话已复制", icon: "success" }),
+    });
+  },
+
+  copySignature() {
+    const motto = this.data.userInfo.motto;
+    if (!motto) {
+      return wx.showToast({ title: "暂无签名", icon: "none" });
+    }
+    wx.setClipboardData({
+      data: motto,
+      success: () => wx.showToast({ title: "签名已复制", icon: "success" }),
+    });
+  },
+
+  // 新增：底部导航切换页面
+  switchPage(e) {
+    const page = e.currentTarget.dataset.page;
+    this.setData({ activeTab: page });
+
+    if (page === "community") {
+      wx.redirectTo({ url: "/pages/community/community" });
+    } else if (page === "index") {
+      wx.redirectTo({ url: "/pages/index/index" });
+    } else if (page === "me") {
+      // 已经在“我的”页，可留空
+    }
+  },
+
+  handlerGobackClick() {
+    wx.navigateBack({ delta: 1 });
+  },
+});

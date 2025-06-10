@@ -24,6 +24,20 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/editPage/editPage",
+          "pathName": "pages/editPage/editPage",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "pages/me/me",
+          "pathName": "pages/me/me",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail",
           "pathName": "pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail",
           "query": "",
