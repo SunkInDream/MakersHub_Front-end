@@ -2,7 +2,7 @@
 <view class="container">
   <view class='nav'>
           <navBar 
-          title='值班表安排' 
+          title='值班安排' 
           background='#222831' 
           color='#FFFFFF' 
           back="{{true}}" 
