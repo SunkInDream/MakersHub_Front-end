@@ -20,7 +20,7 @@
     <view class="circle">
       <!--头像的图片部分-->
       <view class="avatar-section">
-        <image class="avatar" src="/images/editPage/avatar.png" mode="aspectFit" bindtap = "editAvatar"/>
+        <image class="avatar" src="{{avatar}}" mode="aspectFit" bindtap = "editAvatar"/>
         <!--头像的编辑图标-->
         <image class="edit-icon" src="/images/editPage/edit picture.svg" bindtap="editAvatar" />
       </view>

@@ -1,5 +1,6 @@
 // /pages/editPage/editPage
-const authToken = wx.getStorageSync('auth_token');
+const token = wx.getStorageSync('auth_token');
+const API_BASE = 'http://146.56.227.73:8000'
 
 Page({
   // 页面的数据对象，用于存储页面需要展示和使用的数据
@@ -9,7 +10,7 @@ Page({
       // 默认的联系方式，显示为 '1234567890'
       phone_num: '1234567890',
       // 用于存储用户头像的 URL
-      avatar: '',
+      avatar: '',//选择的图片路径
       // 真实姓名选中状态
       isNameFocused: false,
       // 联系方式选中状态
@@ -114,57 +115,47 @@ Page({
           sourceType: ['album', 'camera'],
           // 用户选择图片成功时的回调函数
           success: (res) => {
-              // 获取用户选择的图片的临时文件路径
-              const tempFilePath = res.tempFilePaths[0];
-
-              // 调用微信小程序的 wx.uploadFile 方法将图片上传到服务器
-              wx.uploadFile({
-                  // 上传图片的后端接口地址，需要替换为实际的接口地址
-                  url: config.user_profile,
-                  // 要上传的图片的临时文件路径
-                  filePath: tempFilePath,
-                  // 后端接收文件的字段名
-                  name: 'avatar',
-                  header: {
-                    "Authorization": `Bearer ${authToken}`,
-                    "Content-Type": "multipart/form-data"
-                  },
-                  formData:{
-                    'real_name': real_name,
-                    'phone_numb': phone_num,
-                  },
-                  // 上传成功时的回调函数
-                  success: (uploadRes) => {
-                      // 解析后端返回的 JSON 数据
-                      const data = JSON.parse(uploadRes.data);
-                      // 判断解析后的数据是否存在，并且是否包含 avatarUrl 字段
-                      if (data && data.avatarUrl) {
-                          // 使用 setData 方法更新页面数据中的 avatarUrl
-                          this.setData({
-                              avatar: data.avatarUrl,
-                          });
-                          // 显示头像更新成功的提示信息
-                          wx.showToast({
-                              title: '个人信息更新成功',
-                              icon: 'success',
-                          });
-                      } else {
-                          // 显示头像更新失败的提示信息
-                          wx.showToast({
-                              title: '个人信息更新失败',
-                              icon: 'none',
-                          });
-                      }
-                  },
-                  // 上传失败时的回调函数
-                  fail: () => {
-                      // 显示上传失败的提示信息
-                      wx.showToast({
-                          title: '上传失败，请稍后再试',
-                          icon: 'none',
-                      });
-                  }
+              var tempFilePaths = res.tempFiles[0].tempFilePath;
+              console.log("tempFilePaths:" + tempFilePaths);
+              this.setData({
+                avatar: tempFilePaths,
               });
+              if(this.data.photoPath!=undefined) {
+                console.log("wx.uploadFile")
+                wx.uploadFile({
+                  filePath: this.data.photoPath,
+                  name: 'file',
+                  url: API_BASE + '/users/profile-photo',
+                  header: {
+                    'Content-Type': "multipart/form-data",
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  success: (res) =>{
+                    console.log(res.data)
+                    var result=res.data.profile_photo;
+                      if(res.statusCode!=200) {
+                        wx.showToast({
+                          title: '更改头像失败！',
+                          duration:2000
+                        })
+                      }
+                      else {
+                        var date=new Date();
+                        this.setData({
+                          avatar: result+"?t="+date,//如果不加后缀的话第一次上传过图片之后再次上传的图片不显示，虽然图片链接已经改变，显示的仍是第一次的图片
+                        });
+                        wx.showToast({ 
+                          title: '更改头像成功！',
+                          duration:2000
+                        })
+                      }
+                    },
+                    complete: (res) =>{
+                      console.log(res);
+                    }
+                })
+              }
           },
           // 用户选择图片失败时的回调函数
           fail: () => {
