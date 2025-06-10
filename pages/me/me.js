@@ -7,13 +7,13 @@ console.log('本地获取到的 token:', token)
 Page({
   data: {
     textToCopy: '',
-
+    
     userInfo: {
-      profile_photo: '../../images/me/avatar.png',
-      real_name: '用户123',
-      phone_num: 'dsdf',
-      motto: 'safsa',
-      score: 10,
+      profile_photo: '/images/me/avatar.png',
+      real_name: '新来的猫猫',
+      phone_num: '留下联系方式吧',
+      motto: '什么都没有捏',
+      score: 0,
       role: 0
     },
     isAssociationMember: 1,
@@ -33,6 +33,7 @@ Page({
   },
 
   fetchUserProfile() {
+    console.log("初始用户默认信息: " + JSON.stringify(this.data.userInfo, null, 2));
     wx.request({
       url: `${API_BASE}/users/profile`,
       method: 'GET',
@@ -43,19 +44,21 @@ Page({
       success: res => {
         console.log('[me] 用户信息请求响应:', res)
         if (res.statusCode === 200 && res.data) {
-          const info = res.data
+          const info = res.data.data
+          
           this.setData({
             userInfo: {
               state: info.state || 1,
-              real_name: info.real_name || '',
-              phone_num: info.phone_num || '',
-              motto: info.motto || '',
+              real_name: info.real_name || this.data.userInfo.real_name,
+              phone_num: info.phone_num || this.data.userInfo.phone_num,
+              motto: info.motto || this.data.userInfo.motto,
               score: info.score || 0,
-              role: info.role || 0,
-              profile_photo: info.profile_photo || ''
+              role: info.role ,
+              profile_photo: info.profile_photo ? info.profile_photo : this.data.userInfo.profile_photo
             },
             isAssociationMember: info.role > 0
-          })
+          });
+          console.log("服务器返回用户信息: " + JSON.stringify(this.data.userInfo, null, 2));
         } else {
           wx.showToast({ title: '获取用户信息失败', icon: 'none' })
         }
