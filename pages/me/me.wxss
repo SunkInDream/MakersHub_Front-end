@@ -33,27 +33,41 @@ button:active {
   margin-left: 23rpx;
 }
 
-.box1, .box2 {
+.info {
   display: flex;
-  padding: 4rpx;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  gap: 20rpx;
+}
+
+.box {
+  display: flex;
+  padding: 10rpx;
   margin-top: 30rpx;
   border-radius: 25rpx;
-  width: 47%;
+  width: 45%;
+  gap: 10rpx;
+  background-color: #FFE89E;
+  align-items: center;
+  /* border-bottom: 7rpx dotted #FFE89E ; */
 }
 
 .phone-icon, .style-icon {
-  width: 30rpx;
-  height: 30rpx;
-  padding-right:-15rpx;
+  width: 36rpx;
+  height: 36rpx;
+  margin: 10rpx;
 }
 
-.phone-number, .signiture {
-  flex-grow: 1;
-  font-size: 1rem;
+.info-text {
+  font-size: 28rpx;
   color: #333;
+  text-align: start;
+  line-height: 36rpx;
+  width: 85%;
 }
 
-.copy-icon1, .copy-icon2 {
+.copy-icon {
   width: 33rpx;
   height: 33rpx;
   margin-right:-45rpx;
@@ -177,7 +191,7 @@ button:active {
   padding: 18rpx 8rpx;
   font-size: 40rpx;
   color: #000000;
-  border-radius: 15rpx;
+  border-radius: 25rpx;
   margin-bottom: 47rpx;
   font-weight: bold;
   height: 97rpx;

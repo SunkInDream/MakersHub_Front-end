@@ -1,244 +1,254 @@
-// /pages/editPage/editPage
-const authToken = wx.getStorageSync('auth_token');
+// pages/editPage/editPage.js
+
+const API_BASE = "http://146.56.227.73:8000";
+const token = wx.getStorageSync("auth_token");
 
 Page({
-  // 页面的数据对象，用于存储页面需要展示和使用的数据
   data: {
-      // 默认的真实姓名，显示为 '猫猫××'
-      real_name: '猫猫××',
-      // 默认的联系方式，显示为 '1234567890'
-      phone_num: '1234567890',
-      // 用于存储用户头像的 URL
-      avatar: '',
-      // 真实姓名选中状态
-      isNameFocused: false,
-      // 联系方式选中状态
-      isPhoneFocused: false,
-      // 个人签名选中状态
-      isMottoFocused: false,
+    userInfo: {
+      real_name: "",
+      phone_num: "",
+      avatar: "",
+      motto: "",
+    },
+    tempAvatar: "",
+    // oldAvatar: "",
+    isNameFocused: false,
+    isPhoneFocused: false,
+    isMottoFocused: false,
+    isNameChanged: false,
+    isPhoneChanged: false,
+    isMottoChanged: false,
+    isPhoneValid: true, // 电话号码是否有效的标志
+    phoneErrorMsg: "", // 电话错误信息
   },
 
-  // 页面加载时触发的生命周期函数
-  // 直接接收从个人主页返回过来的real_name和phone_num和avatar显示
-  onLoad: function (options) {
-    console.log('接收端:' + options.real_name);
-		console.log('接收端:' + options.phone_num);
-    console.log('接收端:' + options.avatar);
+  onLoad(options) {
+    // 加载从me页面传来的数据
     this.setData({
-      real_name: options.read_name,
-      phone_num: options.phone_num,
-      avatar: options.avatar,
-    })
+      userInfo: {
+        real_name: options.real_name ? decodeURIComponent(options.real_name) : "",
+        phone_num: options.phone_num ? decodeURIComponent(options.phone_num) : "",
+        avatar: options.avatar ? decodeURIComponent(options.avatar) : "",
+        motto: options.motto ? decodeURIComponent(options.motto) : ""
+      }
+    });
+    // 输出从me页面传送来的数据
+    console.log('接收到的参数:', JSON.stringify(this.data.userInfo, null, 2));
+  },
+  
+
+  onNameFocused() {
+    this.setData({ isNameFocused: true });
+  },
+  onNameBlur() {
+    this.setData({ isNameFocused: false });
+  },
+  onPhoneFocused() {
+    this.setData({ isPhoneFocused: true });
+  },
+  onPhoneBlur() {
+    this.setData({ isPhoneFocused: false });
+  },
+  onMottoFocused() {
+    this.setData({ isMottoFocused: true });
+  },
+  onMottoBlur() {
+    this.setData({ isMottoFocused: false });
   },
 
-  onNameFocused : function() {
+  // 更改用户真实姓名
+  updateRealName(e) {
+    this.setData(
+      { 'userInfo.real_name': e.detail.value ,
+       isNameChanged: true }
+    );
+  },
+
+  // 更改用户联系电话
+  updateContact(e) {
+    const phone = e.detail.value;
+    // 验证是否只有数字
+    const isNumeric = /^\d*$/.test(phone);
+    // 验证是否是11位数字或者是空的（允许用户清空输入）
+    const isValidLength = phone.length === 11 || phone.length === 0;
+    
+    // 设置验证状态
+    let isValid = true;
+    let errorMsg = "";
+    
+    if (phone && !isNumeric) {
+      isValid = false;
+      errorMsg = "有非法字符";
+      console.log("电话包含非数字字符");
+    } else if (phone && !isValidLength) {
+      isValid = false;
+      errorMsg = "请输入11位电话号码";
+      console.log("电话长度不是11位: " + phone.length);
+    }
+
+    console.log("电话验证: ", {
+      phone, 
+      isNumeric, 
+      isValidLength, 
+      isValid, 
+      errorMsg
+    });
+
     this.setData({
-      isNameFocused: true
+      // 如果有非法字符，不更新phone_num值，但仍然更新验证状态
+      ...(!isNumeric ? {} : {'userInfo.phone_num': phone}),
+      isPhoneChanged: isNumeric ? true : this.data.isPhoneChanged,
+      isPhoneValid: isValid,
+      phoneErrorMsg: errorMsg
     });
   },
-
-  onNameBlur : function() {
-    this.setData({
-      isNameFocused: false
-    });
+  // 更改用户座右铭
+  updateMotto(e) {
+    this.setData(
+      { 'userInfo.motto': e.detail.value ,
+       isMottoChanged: true }
+    );
   },
 
-  onPhoneFocused : function() {
-    this.setData({
-      isPhoneFocused: true
+  // 修改头像选择函数，只存储本地临时路径，暂不上传
+  editAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ["image"],
+      sourceType: ["album", "camera"],
+      success: (res) => {
+        const path = res.tempFiles[0].tempFilePath;
+        this.setData({
+          // oldAvatar: this.data.userInfo.avatar,
+          'userInfo.avatar': path,
+          tempAvatar: path // 保存临时文件路径
+        });
+        // 输出更新图片
+        console.log("选择新头像临时路径: ", this.data.tempAvatar);
+        // console.log("暂存老头像: ", this.data.oldAvatar);
+      },
     });
   },
+  // editAvatar() {
+  //   wx.chooseMedia({
+  //     count: 1,
+  //     mediaType: ["image"],
+  //     sourceType: ["album", "camera"],
+  //     success: (res) => {
+  //       const path = res.tempFiles[0].tempFilePath;
+  //       this.setData({ avatar: path, photoPath: path });
+  //       wx.uploadFile({
+  //         filePath: path,
+  //         name: "file",
+  //         url: `${API_BASE}/users/profile-photo`,
+  //         header: {
+  //           "Content-Type": "multipart/form-data",
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //         success: (upRes) => {
+  //           const data = JSON.parse(upRes.data);
+  //           if (upRes.statusCode === 200 && data.profile_photo) {
+  //             const date = Date.now();
+  //             this.setData({ avatar: `${data.profile_photo}?t=${date}` });
+  //             wx.showToast({ title: "上传成功" });
+  //           } else {
+  //             wx.showToast({ title: "上传失败", icon: "none" });
+  //           }
+  //         },
+  //       });
+  //     },
+  //   });
+  // },
+  saveChanges() {
+    // 首先验证电话号码
+    if (!this.data.isPhoneValid) {
+      wx.showToast({ 
+        title: "请输入正确的电话号码", 
+        icon: "none" 
+      });
+      return; // 如果电话无效，不继续执行保存
+    }
+    const uploadAndSaveProfile = () => {
+      // 准备更新的数据
+      const updateData = {
+        data: {}
+      };
+      if(this.data.userInfo.real_name) {
+        updateData.data.real_name = this.data.userInfo.real_name;
+      }
+      if (this.data.userInfo.phone_num) {
+        updateData.data.phone_num = this.data.userInfo.phone_num;
+      }
+      if (this.data.userInfo.motto) {
+        updateData.data.motto = this.data.userInfo.motto;
+      }
+      // 图片没有被更改过
+      if(this.data.userInfo.avatar) {
+        updateData.data.profile_photo = this.data.userInfo.avatar;
+      }
 
-  onPhoneBlur : function() {
-    this.setData({
-      isPhoneFocused: false
-    });
-  },
-
-  onMottoFocused : function() {
-    this.setData({
-      isMottoFocused: true
-    });
-  },
-
-  onMottoBlur : function() {
-    this.setData({
-      isMottoFocused: false
-    });
-  },
-
-  // 向后端请求用户头像 URL 的方法
-  fetchAvatar: function () {
-      // 调用微信小程序的 wx.request 方法向后端发送请求
+      // 将更新好的用户除头像外的数据从/users/profile发出
       wx.request({
-          // 后端接口的地址，需要替换为实际的接口地址
-          url: config.profile_url,
-          // 请求方法为 GET
-          method: 'GET',
-          // 请求成功时的回调函数
-          success: (res) => {
-              // 判断响应数据是否存在，并且是否包含 avatarUrl 字段
-              if (res.data && res.data.avatarUrl) {
-                  // 使用 setData 方法更新页面数据中的 avatarUrl
-                  this.setData({
-                      avatarUrl: res.data.avatarUrl,
-                  });
-              } else {
-                  // 如果获取失败，显示提示信息
-                  wx.showToast({
-                      title: '获取头像失败',
-                      icon: 'none',
-                  });
-              }
-          },
-          // 请求失败时的回调函数
-          fail: () => {
-              // 显示请求失败的提示信息
-              wx.showToast({
-                  title: '请求失败，请稍后再试',
-                  icon: 'none',
-              });
+        url: `${API_BASE}/users/profile`,
+        method: "PATCH",
+        header: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        data: updateData,
+        success: (res) => {
+          if (res.statusCode === 200) {
+            // 保存成功后的操作
+            wx.showToast({ title: "保存成功" });
+            // 直接返回上一页，让me页面重新获取数据
+            // wx.setStorageSync('UserInfo', updateData);
+            setTimeout(() => {
+              wx.navigateBack({ delta: 1 });
+            }, 1500);
+          } else {
+            wx.showToast({ title: "保存失败", icon: "error" });
           }
+        },
+        fail: () => {
+          wx.showToast({ title: "保存失败", icon: "error" });
+        }
       });
-  },
-
-  // 更新用户个人信息
-  editAvatar: function () {
-      // 调用微信小程序的 wx.chooseImage 方法，让用户选择图片
-      wx.chooseMedia({
-          // 允许选择的图片数量为 1 张
-          count: 1,
-          // 可以选择原图或压缩图
-          mediaType: ['image'],
-          // 图片来源可以是相册或拍照
-          sourceType: ['album', 'camera'],
-          // 用户选择图片成功时的回调函数
-          success: (res) => {
-              // 获取用户选择的图片的临时文件路径
-              const tempFilePath = res.tempFilePaths[0];
-
-              // 调用微信小程序的 wx.uploadFile 方法将图片上传到服务器
-              wx.uploadFile({
-                  // 上传图片的后端接口地址，需要替换为实际的接口地址
-                  url: config.user_profile,
-                  // 要上传的图片的临时文件路径
-                  filePath: tempFilePath,
-                  // 后端接收文件的字段名
-                  name: 'avatar',
-                  header: {
-                    "Authorization": `Bearer ${authToken}`,
-                    "Content-Type": "multipart/form-data"
-                  },
-                  formData:{
-                    'real_name': real_name,
-                    'phone_numb': phone_num,
-                  },
-                  // 上传成功时的回调函数
-                  success: (uploadRes) => {
-                      // 解析后端返回的 JSON 数据
-                      const data = JSON.parse(uploadRes.data);
-                      // 判断解析后的数据是否存在，并且是否包含 avatarUrl 字段
-                      if (data && data.avatarUrl) {
-                          // 使用 setData 方法更新页面数据中的 avatarUrl
-                          this.setData({
-                              avatar: data.avatarUrl,
-                          });
-                          // 显示头像更新成功的提示信息
-                          wx.showToast({
-                              title: '个人信息更新成功',
-                              icon: 'success',
-                          });
-                      } else {
-                          // 显示头像更新失败的提示信息
-                          wx.showToast({
-                              title: '个人信息更新失败',
-                              icon: 'none',
-                          });
-                      }
-                  },
-                  // 上传失败时的回调函数
-                  fail: () => {
-                      // 显示上传失败的提示信息
-                      wx.showToast({
-                          title: '上传失败，请稍后再试',
-                          icon: 'none',
-                      });
-                  }
-              });
-          },
-          // 用户选择图片失败时的回调函数
-          fail: () => {
-              // 显示选择图片失败的提示信息
-              wx.showToast({
-                  title: '选择失败，请重试',
-                  icon: 'none',
-              });
+    };
+    
+    if (this.data.tempAvatar) {
+      wx.uploadFile({
+        filePath: this.data.tempAvatar,
+        name: "file",
+        url: `${API_BASE}/users/profile-photo`,
+        header: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+        success: (upRes) => {
+          const data = JSON.parse(upRes.data);
+          console.log("后端返回: ", data);
+          if (upRes.statusCode === 200 && data.data.profile_photo) {
+            // 更新头像URL并继续更新其他资料
+            this.setData({ 
+              'userInfo.avatar': data.data.profile_photo 
+            });
+            uploadAndSaveProfile();
+          } else {
+            wx.showToast({ title: "头像上传失败", icon: "error"});
           }
+        },
+        fail: () => {
+          wx.showToast({ title: "头像上传失败", icon: "error" });
+        }
       });
+    } else {
+      // 没有新头像，直接更新其他资料
+      uploadAndSaveProfile();
+    }
   },
 
-  // 更新真实姓名的方法，接收一个事件对象 e
-  updateRealName: function (e) {
-      // 使用 setData 方法更新页面数据中的 realName，值为输入框的当前值
-      this.setData({
-          realName: e.detail.value
-      });
-  },
-
-  // 更新联系方式的方法，接收一个事件对象 e
-  updateContact: function (e) {
-      // 使用 setData 方法更新页面数据中的 contact，值为输入框的当前值
-      this.setData({
-          contact: e.detail.value
-      });
-  },
-
-
-//   // 保存用户更改的方法
-//   saveChanges: function () {
-//     const { realName, contact, signature } = this.data;
-//     wx.request({
-//         url: 'https://your-api-endpoint.com/save-profile', // 替换为实际的保存接口地址
-//         method: 'POST',
-//         data: {
-//             realName,
-//             contact,
-//             signature
-//         },
-//         success: (res) => {
-//             if (res.data && res.data.success) {
-//                 wx.showToast({
-//                     title: '保存成功',
-//                     icon: 'success',
-//                     duration: 2000
-//                 });
-//                 setTimeout(() => {
-//                     wx.navigateBack({
-//                         delta: 1
-//                     });
-//                 }, 2000);
-//             } else {
-//                 wx.showToast({
-//                     title: '保存失败，请稍后再试',
-//                     icon: 'none'
-//                 });
-//             }
-//         },
-//         fail: (err) => {
-//             console.error('保存用户信息失败:', err);
-//             wx.showToast({
-//                 title: '保存失败，请稍后再试',
-//                 icon: 'none'
-//             });
-//         }
-//     });
-// },
-
-  // 返回上一页面的方法
   handlerGobackClick() {
-      // 调用微信小程序的 wx.navigateBack 方法返回上一页面
-      wx.navigateBack({
-          delta: 1  // 返回上一页
-      });
+    wx.navigateBack({ delta: 1 });
   },
 });

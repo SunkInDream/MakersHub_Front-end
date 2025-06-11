@@ -1,4 +1,5 @@
-/* pages/object_borrow_list/object_borrow_list.wxss */
+/* pages/my_stuff_borrow/my_stuff_borrow.wxss */
+
 
 page {
   background-color: #222831;
@@ -21,7 +22,7 @@ page {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 150rpx;
+  gap: 100rpx;
   margin-top: 10rpx;
   margin-bottom: 25rpx;
 }

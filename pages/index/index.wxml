@@ -1,6 +1,6 @@
 <!--index.wxml-->
 <!-- 顶部的透明的导航栏 -->
-<View class='nav'>
+<view class='nav'>
         <navBar 
         title='' 
         background='rgba(0,0,0,0)' 
@@ -11,7 +11,7 @@
         bindback="handlerGobackClick"
         showMessageIcon="{{true}}"
         ></navBar>
-</View>
+</view>
 
 <!-- 页面内容 -->
 <view class="page-container">

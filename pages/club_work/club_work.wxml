@@ -17,9 +17,9 @@
               <image class= "icon remote" src = "/images/club_work/remote.svg"/>
               <text>远程控制</text>
           </button>
-          <button>
-              <image class= "icon apply-duty" src = "/images/club_work/applyDuty.svg"/>
-              <text>值班申请</text>
+          <button bindtap="jumpToDutyApplicationPage">
+            <image class= "icon apply-duty" src = "/images/club_work/applyDuty.svg"/>
+            <text>值班申请</text>
           </button>
       </view>
   </view>

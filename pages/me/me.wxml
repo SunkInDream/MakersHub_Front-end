@@ -11,6 +11,7 @@
         iconTheme='white' 
         bindback="handlerGobackClick"
         showEditIcon="{{true}}"
+        bindedit="goToEditPage"
         ></navBar>
   </view>
   <!-- 用户信息区域,用于展示用户的姓名，联系方式，个人签名等信息 -->
@@ -18,23 +19,27 @@
   <view class="userinfo">
    <view class="infoboxes">
       <text class="user-name">{{userInfo.real_name}}</text>
-       <!-- 包含用户联系电话信息的容器 -->
-      <view class="box1" style="background-color: #FFE89E;">
-      <!--电话图标-->
-        <image class="phone-icon" src="/images/me/phone.svg" mode="aspectFill" />
-        <!-- 显示用户电话号码，电话号码数据从 userInfo 对象的 phone 属性中获取 -->
-        <text class="phone-number">{{userInfo.phone_num}}</text>
+      <view class="info">
+        <!-- 包含用户联系电话信息的容器 -->
+        <view class="box">
+        <!--电话图标-->
+          <image class="phone-icon" src="/images/me/phone.svg" mode="aspectFill" />
+          <!-- 显示用户电话号码，电话号码数据从 userInfo 对象的 phone 属性中获取 -->
+          <text class="info-text">{{userInfo.phone_num}}</text>
+        </view>
         <!--复制图标-->
-        <image class="copy-icon1" src="/images/me/copy.svg" bindtap="copyPhone" mode="aspectFill" />
+        <image class="copy-icon" src="/images/me/copy.svg" bindtap="copyPhone" mode="aspectFill" />
       </view>
-      <!-- 包含用户个性签名信息的容器-->
-      <view class="box2" style="background-color: #FFE89E;">
-      <!--风格图标-->
-        <image class="style-icon" src="/images/me/style.svg" mode="aspectFill" />
-        <!-- 显示用户个性签名，签名数据从 userInfo 对象的 signiture 属性中获取 -->
-        <text class="signiture">{{userInfo.motto}}</text>
-        <!--复制图标-->
-        <image class="copy-icon2" src="/images/me/copy.svg" bindtap="copySignature" mode="aspectFill" />
+      <view class="info">
+        <!-- 包含用户个性签名信息的容器-->
+        <view class="box" >
+        <!--风格图标-->
+          <image class="style-icon" src="/images/me/style.svg" mode="aspectFill" />
+          <!-- 显示用户个性签名，签名数据从 userInfo 对象的 signiture 属性中获取 -->
+          <text class="info-text">{{userInfo.motto}}</text>
+          <!--复制图标-->
+        </view>
+        <image class="copy-icon" src="/images/me/copy.svg" bindtap="copySignature" mode="aspectFill" />
       </view>
     </view>
      <!-- 用户头像区域，显示默认的头像占位图 -->

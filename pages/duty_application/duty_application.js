@@ -1,20 +1,24 @@
+const TOKEN_KEY = 'auth_token'; // 登录后保存的 token 的 key
+
 Page({
   data: {
-    // 实际下拉选项（不包含提示项）
     weekArray: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'],
     timeArray: ['08:10 - 10:05', '10:15 - 12:20', '12:30 - 14:30', '14:30 - 16:30', '16:30 - 18:30', '18:30 - 20:30'],
 
-    // 每组时段的初始选择索引，-1 表示未选择（显示提示文字）
     timeSlot1: { weekIndex: -1, timeIndex: -1 },
     timeSlot2: { weekIndex: -1, timeIndex: -1 },
-    timeSlot3: { weekIndex: -1, timeIndex: -1 }
+    timeSlot3: { weekIndex: -1, timeIndex: -1 },
+
+    token: '' // 用于存储本地获取的 token
   },
 
   onLoad() {
     console.log('值班申请页面加载完成');
+    const token = wx.getStorageSync(TOKEN_KEY);
+    console.log('本地获取到的 token:', token);
+    this.setData({ token }); // 存入 data 方便后续使用
   },
 
-  // ======= 选择事件处理 =======
   onWeekChange1(e) {
     this.setData({ 'timeSlot1.weekIndex': parseInt(e.detail.value) });
   },
@@ -34,7 +38,6 @@ Page({
     this.setData({ 'timeSlot3.timeIndex': parseInt(e.detail.value) });
   },
 
-  // ======= 提交处理 =======
   onSubmit() {
     const { weekArray, timeArray, timeSlot1, timeSlot2, timeSlot3 } = this.data;
 
@@ -74,22 +77,30 @@ Page({
     console.log('提交数据：', submitData);
 
     wx.showToast({
-      title: '申请提交成功',
-      icon: 'success',
-      duration: 2000
+      title: '申请提交中',
+      icon: 'loading',
+      duration: 1000
     });
 
-    // 如需提交到后端，请启用以下函数
     this.submitToServer(submitData);
   },
 
-  // 示例：提交数据到后端接口
   submitToServer(data) {
+    const token = wx.getStorageSync('auth_token'); // 与 fetchUserProfile 保持一致
+  
+    if (!token) {
+      wx.showToast({ title: '请先登录获取token', icon: 'none' });
+      return;
+    }
+  
     wx.request({
       url: 'http://146.56.227.73:8000/duty-apply/post',
       method: 'POST',
       data,
-      header: { 'content-type': 'application/json' },
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`  // ✅ 正确地发送 token
+      },
       success: (res) => {
         console.log('提交成功：', res.data);
         wx.showToast({ title: '申请成功', icon: 'success' });
@@ -99,5 +110,26 @@ Page({
         wx.showToast({ title: '提交失败，请重试', icon: 'none' });
       }
     });
+  },
+  
+  handlerGobackClick() {
+    wx.showModal({
+      title: '你点击了返回',
+      content: '是否确认放回',
+      success: e => {
+        if (e.confirm) {
+          const pages = getCurrentPages();
+          if (pages.length >= 2) {
+            wx.navigateBack({ delta: 1 });
+          } else {
+            wx.reLaunch({ url: '/pages/index/index' });
+          }
+        }
+      }
+    });
+  },
+
+  handlerGohomeClick() {
+    wx.reLaunch({ url: '/pages/index/index' });
   }
 });

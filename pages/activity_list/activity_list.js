@@ -1,50 +1,102 @@
 // pages/activity_list/activity_list.js
-const config = {
-  list: 'http://example.com/api/events' // TODO: 替换为真实接口地址
-};
+const API_BASE = "http://146.56.227.73:8000";
 
-// 模拟 util.js 中的安全导入
-const UtilJS = {
-  // 如果你之前有 formatDate 工具函数，也可以从 util.js 引入
-  formatDate: function (timestamp) {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-};
+// 导入外部utils工具函数
+const utils = require('../../utils/util')
 
 Page({
   data: {
-    events: [],
-    items: [],
-    posters: [],
-    sortText: '默认',
-    currentSort: 'default',
-    isFolded: true
+    events: [],          // 初始化空数组
+    sortText: '默认',    // 排序文本
+    currentSort: 'default',  // 当前排序方式
+    isFolded: true,      // 下拉菜单状态
+    posters: []          // 轮播图数据
   },
 
   onLoad: function (options) {
-    this.loadEvents();
+    this.fetchEvents();
+  },
+
+  // 从后端获取活动列表
+  fetchEvents: function() {
+    wx.showLoading({
+      title: '加载中...',
+    });
+
+    wx.request({
+      url: `${API_BASE}/events/view`,
+      method: 'GET',
+      success: (res) => {
+        if (res.statusCode === 200 && res.data && res.data.data && res.data.data.events) {
+          const events = res.data.data.events.map(event => ({
+            ...event,
+            // 格式化日期显示
+            start_time: utils.formatDateTime(event.start_time)
+          }));
+
+          // 提取轮播图数据 (使用所有活动或最多4个)
+          const posterCount = Math.min(events.length, 4);
+          const posters = events.slice(0, posterCount).map((item, index) => ({
+            id: index + 1,
+            image: item.poster
+          }));
+
+          this.setData({
+            events: events,
+            items: events,
+            posters: posters
+          });
+
+          console.log("成功获取活动列表:", events);
+        } else {
+          console.error("获取活动列表失败:", res);
+          wx.showToast({
+            title: '获取活动列表失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: (err) => {
+        console.error("请求失败:", err);
+        wx.showToast({
+          title: '网络请求失败',
+          icon: 'none'
+        });
+      },
+      complete: () => {
+        wx.hideLoading();
+      }
+    });
+  },
+
+  // 确保有足够的轮播图
+  ensureFourPosters: function() {
+    const { posters, events } = this.data;
+    if (posters.length >= 4) return;
+    
+    const needed = 4 - posters.length;
+    // 可能需要重复使用一些图片
+    let additionalPosters = [];
+    for (let i = 0; i < needed; i++) {
+      const eventIndex = i % events.length;
+      additionalPosters.push({
+        id: posters.length + i + 1,
+        image: events[eventIndex].poster
+      });
+    }
+    
+    this.setData({
+      posters: [...posters, ...additionalPosters]
+    });
   },
 
   handlerGobackClick() {
-    wx.showModal({
-      title: '你点击了返回',
-      content: '是否确认放回',
-      success: e => {
-        if (e.confirm) {
-          const pages = getCurrentPages();
-          if (pages.length >= 2) {
-            wx.navigateBack({ delta: 1 });
-          } else {
-            wx.reLaunch({ url: '/pages/index/index' });
-          }
-        }
-      }
-    });
+    const pages = getCurrentPages();
+    if (pages.length >= 2) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.reLaunch({ url: '/pages/index/index' });
+    }
   },
 
   handlerGohomeClick() {
@@ -52,20 +104,17 @@ Page({
   },
 
   toggleSortDropdown() {
-    this.setData({
-      isFolded: !this.data.isFolded
-    });
+    this.setData({ isFolded: !this.data.isFolded });
   },
 
   selectSort(e) {
     const value = e.currentTarget.dataset.value;
-    let sortText = '默认';
-    if (value === 'asc') sortText = '正序';
-    if (value === 'desc') sortText = '逆序';
+    let sortText = value === 'asc' ? '正序' : 
+                  value === 'desc' ? '逆序' : '默认';
 
     this.setData({
       currentSort: value,
-      sortText,
+      sortText: sortText,
       isFolded: true
     });
 
@@ -74,71 +123,142 @@ Page({
 
   doSort(mode) {
     let sortedItems = [...this.data.items];
-
+    
+    // 根据选择的排序方式处理数据
     switch (mode) {
       case 'asc':
-        sortedItems.sort((a, b) =>
-          new Date(a.start_time.replace(/-/g, '/')) -
-          new Date(b.start_time.replace(/-/g, '/'))
-        );
+        sortedItems.sort((a, b) => {
+          // 将格式化后的日期字符串转换回日期对象再比较
+          const dateA = this.parseFormattedDate(a.start_time);
+          const dateB = this.parseFormattedDate(b.start_time);
+          return dateA - dateB;
+        });
         break;
       case 'desc':
-        sortedItems.sort((a, b) =>
-          new Date(b.start_time.replace(/-/g, '/')) -
-          new Date(a.start_time.replace(/-/g, '/'))
-        );
+        sortedItems.sort((a, b) => {
+          const dateA = this.parseFormattedDate(a.start_time);
+          const dateB = this.parseFormattedDate(b.start_time);
+          return dateB - dateA;
+        });
         break;
       case 'default':
-        sortedItems.sort((a, b) => a.event_id - b.event_id);
+        // 保持原始添加顺序
+        sortedItems = [...this.data.events]; 
         break;
     }
-
+    
     this.setData({ items: sortedItems });
+  },
+
+  // 将格式化后的日期字符串解析回日期对象
+  parseFormattedDate(dateString) {
+    if (!dateString) return new Date(0);
+    
+    const parts = dateString.split(' ');
+    if (parts.length !== 2) return new Date(dateString);
+    
+    const dateParts = parts[0].split('/');
+    const timeParts = parts[1].split(':');
+    
+    if (dateParts.length !== 3 || timeParts.length !== 2) return new Date(dateString);
+    
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]) - 1;
+    const day = parseInt(dateParts[2]);
+    const hours = parseInt(timeParts[0]);
+    const minutes = parseInt(timeParts[1]);
+    
+    return new Date(year, month, day, hours, minutes);
   },
 
   navigateToDetail(e) {
     const event_id = e.currentTarget.dataset.eventId;
-    if (!event_id) {
-      wx.showToast({ title: '活动参数错误', icon: 'error' });
-      return;
-    }
+    console.log('导航到活动详情，ID:', event_id);
     wx.navigateTo({
       url: `/pages/activitydetail/activitydetail?event_id=${event_id}`
     });
   },
 
-  loadEvents() {
-    wx.showLoading({ title: '加载中...' });
+  // 下拉刷新
+  onPullDownRefresh: function() {
+    this.fetchEvents();
+    wx.stopPullDownRefresh();
+  },
 
-    wx.request({
-      url: config.list,
-      success: (res) => {
-        if (res.statusCode === 200 && Array.isArray(res.data)) {
-          const formatted = res.data.map(item => ({
-            ...item,
-            start_time: UtilJS.formatDate(item.start_time),
-            end_time: UtilJS.formatDate(item.end_time),
-            registration_deadline: UtilJS.formatDate(item.registration_deadline)
-          }));
+  // 为方便调试前端渲染的模拟数据导入函数
+  // loadMockData: function() {
+  //   // 创建示例活动数据
+  //   const mockItems = [
+  //     {
+  //       event_id: 1001,
+  //       poster: '/images/activity_list/mock_poster1.jpg',
+  //       event_name: '春季户外拓展活动',
+  //       start_time: '2023/04/15 14:00',
+  //       end_time: '2023/04/15 18:00',
+  //       registration_deadline: '2023/04/10 23:59'
+  //     },
+  //     {
+  //       event_id: 1002,
+  //       poster: '/images/activity_list/mock_poster2.jpg',
+  //       event_name: '设计思维工作坊',
+  //       start_time: '2023/04/20 10:30',
+  //       end_time: '2023/04/20 16:00',
+  //       registration_deadline: '2023/04/17 23:59'
+  //     },
+  //     {
+  //       event_id: 1003,
+  //       poster: '/images/activity_list/mock_poster3.jpg',
+  //       event_name: '公益环保志愿活动',
+  //       start_time: '2023/04/25 09:00',
+  //       end_time: '2023/04/25 12:00',
+  //       registration_deadline: '2023/04/22 23:59'
+  //     },
+  //     {
+  //       event_id: 1004,
+  //       poster: '/images/activity_list/mock_poster4.jpg',
+  //       event_name: '创新创业大赛',
+  //       start_time: '2023/05-05 13:00',
+  //       end_time: '2023-05-05 17:00',
+  //       registration_deadline: '2023-04-30 23:59'
+  //     },
+  //     {
+  //       event_id: 1005,
+  //       poster: '/images/activity_list/mock_poster5.jpg',
+  //       event_name: 'AI主题沙龙',
+  //       start_time: '2023/05/10 14:00',
+  //       end_time: '2023/05/10 16:00',
+  //       registration_deadline: '2023/05/08 23:59'
+  //     }
+  //   ];
 
-          this.setData({
-            events: formatted,
-            items: formatted,
-            posters: formatted.slice(0, 3).map(item => ({
-              id: item.event_id,
-              image: item.poster
-            }))
-          });
-        } else {
-          wx.showToast({ title: '数据格式错误', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '加载失败', icon: 'none' });
-      },
-      complete: () => {
-        wx.hideLoading();
-      }
-    });
-  }
+  //   // 提取轮播图数据 (前4项)
+  //   const posters = mockItems.slice(0, 4).map((item, index) => ({
+  //     id: index + 1,
+  //     image: item.poster
+  //   }));
+
+  //   // 设置页面数据
+  //   this.setData({
+  //     events: mockItems,
+  //     items: mockItems,
+  //     posters: posters
+  //   });
+  // },
+
+  // // 轮播图数据不满足4项时的自动填充
+  // ensureFourPosters: function() {
+  //   const { posters, events } = this.data;
+  //   if (posters.length >= 4) return;
+    
+  //   const needed = 4 - posters.length;
+  //   const additionalPosters = events.slice(0, needed).map((item, index) => ({
+  //     id: posters.length + index + 1,
+  //     image: item.poster
+  //   }));
+    
+  //   this.setData({
+  //     posters: [...posters, ...additionalPosters]
+  //   });
+  // },
 });
+

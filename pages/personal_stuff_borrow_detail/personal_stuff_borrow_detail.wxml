@@ -1,0 +1,58 @@
+<!--pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail.wxml-->
+<!--pages/personal_site_borrow_detail/personal_site_borrow_detail.wxml-->
+<view class="container">
+  <!--导航栏-->
+  <navBar title='个人借物详情' background='#00adb5' color='#fff' back="{{true}}" home="{{true}}" iconTheme='white' bindback="handlerGobackClick" bindhome="handlerGohomeClick"></navBar>
+
+  <!--导航栏下的个人借物详情-->
+  <view class="detail-container">
+    <view class="box" style="background: {{statusColor}}">
+      <text class="boxtext">{{statusText}}</text>
+    </view>
+    <view class="section">
+      <text class="sub-title">借物人信息</text>
+      <view class="info">
+        姓名：{{apiData.borrowerInfo.name}}
+      </view>
+      <view class="info">
+        学号：{{apiData.borrowerInfo.student_id}}
+      </view>
+      <view class="info">
+        专业：{{apiData.borrowerInfo.major}}
+      </view>
+      <view class="info">
+        电话：{{apiData.borrowerInfo.phone_num}}
+      </view>
+      <view class="info">
+        邮箱：{{apiData.borrowerInfo.email}}
+      </view>
+      <view class="info">
+        年级：{{apiData.borrowerInfo.grade}}
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="sub-title">项目信息</text>
+      <view class="info">项目编号：{{apiData.link}}
+        <image class="copy-icon" bindtap="copyLink" src="/images/activitydetail/copy.svg"></image>
+      </view>
+      <view class="info">指导老师：</view>
+      <view class="info">联系方式：</view>
+    </view>
+    
+    <view class="section">
+      <text class="sub-title">起借时间</text>
+      <view class="info">
+        <text>{{apiData.description}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="sub-title">归还时间</text>
+      <view class="info">
+        <text>{{apiData.description}}</text>
+      </view>
+    </view>
+  </view>
+  <image class="bottom-image" src="/images/activitydetail/cat_black.svg"></image>
+</view>
