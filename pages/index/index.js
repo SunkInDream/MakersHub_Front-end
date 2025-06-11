@@ -254,7 +254,7 @@ Page({
 
   actuallyNavigateToBorrow: function () {
     wx.navigateTo({
-      url: "/pages",
+      url: "/pages/personal_stuff_borrow_apply/personal_stuff_borrow_apply",
       success: () => console.log("跳转成功"),
       fail: (err) => {
         console.error("跳转失败:", err);
