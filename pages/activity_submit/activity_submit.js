@@ -350,16 +350,16 @@ Page({
     console.log('点击了提交按钮', e);
     console.log('表单数据:', this.data.event);
     console.log('时间选择器数据:', this.data.timePicker);
-
-    const isValid = this.data.isValid;
+  
     // 先进行表单验证
-    if (!isValid) {
+    this.validateForm();
+    if (!this.data.isValid) {
       console.log("表单验证失败");
       return;
     }
-
+  
     wx.showLoading({ title: '提交中...' });
-
+  
     // 确保filePath有值
     const filePath = this.data.event.poster;
     if (!filePath) {
@@ -367,80 +367,98 @@ Page({
       wx.showToast({ title: '请选择活动海报', icon: 'none' });
       return;
     }
-
-    // 使用新的Promise链，确保上下文正确
-    new Promise((resolve, reject) => {
-      wx.uploadFile({
-        url: `${API_BASE}/events/poster`,
-        filePath: filePath,
-        name: 'file',
-        header: {
-          'Authorization': `Bearer ${token}`
-        },
-        success: (res) => {
-          try {
-            const result = JSON.parse(res.data);
-            if (result.code === 200 && result.data && result.data.poster) {
-              resolve(result.data.poster);
-            } else {
-              reject(result.message || '上传失败');
+  
+    // 1. 获取event_id
+    wx.request({
+      url: `${API_BASE}/events/precreate-event`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success: (res) => {
+        if (res.data.code === 200 && res.data.event_id) {
+          const event_id = res.data.event_id;
+          console.log('获取event_id成功:', event_id);
+          
+          // 2. 上传海报
+          wx.uploadFile({
+            url: `${API_BASE}/events/poster/${event_id}`,
+            filePath: filePath,
+            name: 'file',
+            header: {
+              'Authorization': `Bearer ${token}`
+            },
+            success: (uploadRes) => {
+              console.log('上传文件响应:', uploadRes);
+              
+              // 尝试安全地解析响应
+              let posterUrl = '';
+              try {
+                // 根据实际响应格式调整解析
+                const result = typeof uploadRes.data === 'string' ? JSON.parse(uploadRes.data) : uploadRes.data;
+                posterUrl = result.data?.poster || '';
+                console.log('解析后的posterUrl:', posterUrl);
+              } catch (e) {
+                console.error('解析上传响应失败:', e);
+                wx.hideLoading();
+                wx.showToast({ title: '海报上传失败', icon: 'error' });
+                return;
+              }
+              
+              // 3. 提交表单
+              const postData = {
+                ...this.data.event,
+                poster: posterUrl
+              };
+              
+              wx.request({
+                url: `${API_BASE}/events/post/${event_id}`,
+                method: 'POST',
+                header: {
+                  'Authorization': `Bearer ${token}`,
+                  'content-type': 'application/json'
+                },
+                data: postData,
+                success: (formRes) => {
+                  wx.hideLoading();
+                  if (formRes.data.code === 200) {
+                    wx.showToast({ title: '发布成功', icon: 'success' });
+                    setTimeout(() => {
+                      wx.navigateBack();
+                    }, 1500);
+                  } else {
+                    wx.showToast({ 
+                      title: formRes.data.message || '发布失败', 
+                      icon: 'error' 
+                    });
+                  }
+                },
+                fail: (err) => {
+                  wx.hideLoading();
+                  wx.showToast({ title: '提交表单失败', icon: 'error' });
+                  console.error('提交表单失败:', err);
+                }
+              });
+            },
+            fail: (err) => {
+              wx.hideLoading();
+              wx.showToast({ title: '上传海报失败', icon: 'error' });
+              console.error('上传海报失败:', err);
             }
-          } catch (e) {
-            reject('解析响应失败');
-          }
-        },
-        fail: (err) => {
-          reject(err);
+          });
+        } else {
+          wx.hideLoading();
+          wx.showToast({ 
+            title: res.data.message || '获取活动ID失败', 
+            icon: 'error' 
+          });
         }
-      });
-    })
-    .then(posterUrl => {
-      // 海报上传成功，更新posterUrl
-      this.setData({ 'event.posterUrl': posterUrl });
-      
-      // 准备提交表单数据
-      const postData = {
-        ...this.data.event,
-        poster: posterUrl  // 使用后端返回的URL
-      };
-
-      // 提交表单
-      return new Promise((resolve, reject) => {
-        wx.request({
-          url: `${API_BASE}/events/post`,
-          method: 'POST',
-          header: {
-            'Authorization': `Bearer ${token}`,
-            'content-type': 'application/json'
-          },
-          data: postData,
-          success: (res) => {
-            if (res.data.code === 200) {
-              resolve();
-            } else {
-              reject(res.data.message || '发布失败');
-            }
-          },
-          fail: (err) => {
-            reject('网络错误，请重试');
-          }
-        });
-      });
-    })
-    .then(() => {
-      wx.hideLoading();
-      wx.showToast({ title: '发布成功', icon: 'success' });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-    })
-    .catch(err => {
-      console.error('发布失败:', err);
-      wx.hideLoading();
-      wx.showToast({ 
-        title: typeof err === 'string' ? err : '发布失败', 
-        icon: 'error' 
-      });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        wx.showToast({ title: '网络错误', icon: 'error' });
+        console.error('获取活动ID失败:', err);
+      }
     });
   },
 
