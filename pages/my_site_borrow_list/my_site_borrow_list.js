@@ -1,6 +1,10 @@
 // pages/my_site_borrow_list/my_site_borrow_list.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
+
+// 引入外部utils工具
+const utils = require("../../utils/util")
+
 Page({
   data: {
     tab: 0, // 当前 tab 页索引
@@ -64,11 +68,20 @@ Page({
 
 // 过滤数据到不同分类
   filterData(dataList) {
-    const borrowingList = dataList.filter(item => item.state === 2);
-    const returnedList = dataList.filter(item => item.state === 3);
-    const unpermittedList = dataList.filter(item => item.state === 0 || item.state === 1);
+    // 处理时间格式
+    const formattedDataList = dataList.map(item => {
+      return {
+        ...item,
+        formatted_time: utils.formatDateTime(item.created_time)
+      };
+    });
+
+    const borrowingList = formattedDataList.filter(item => item.state === 2);
+    const returnedList = formattedDataList.filter(item => item.state === 3);
+    const unpermittedList = formattedDataList.filter(item => item.state === 0 || item.state === 1);
+
     this.setData({
-      list: dataList,
+      list: formattedDataList,
       borrowingList,
       returnedList,
       unpermittedList
