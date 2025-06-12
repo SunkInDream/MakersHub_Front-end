@@ -1,6 +1,6 @@
 // pages/activity_list/activity_list.js
 const API_BASE = "http://146.56.227.73:8000";
-
+const token = wx.getStorageSync('auth_token');
 // 导入外部utils工具函数
 const utils = require('../../utils/util')
 
@@ -26,6 +26,9 @@ Page({
     wx.request({
       url: `${API_BASE}/events/view`,
       method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
       success: (res) => {
         if (res.statusCode === 200 && res.data && res.data.data && res.data.data.events) {
           const events = res.data.data.events.map(event => ({
