@@ -243,7 +243,7 @@ Page({
   },
 
   //跳转申请借物的逻辑
-  navigateToBorrow: function () {
+  navigateToPersonalStuffBorrow: function () {
     console.log("[Auth] 尝试访问功能");
     if (!this.data.hasUserInfo) {
       this.showAuthModal(); // 抽离授权逻辑
@@ -347,8 +347,8 @@ Page({
     });
   },
 
-  //跳转近期赛事的逻辑
-  navigateToEvents: function () {
+  //跳转团队借物的逻辑
+  navigateToTeamStuffBorrow: function () {
     console.log("[Auth] 尝试访问功能");
     if (!this.data.hasUserInfo) {
       this.showAuthModal(); // 抽离授权逻辑
@@ -359,7 +359,7 @@ Page({
 
   actuallyNavigateToEvents: function () {
     wx.navigateTo({
-      url: "/pages",
+      url: "/pages/team_stuff_borrow_apply/team_stuff_borrow_apply",
       success: () => console.log("跳转成功"),
       fail: (err) => {
         console.error("跳转失败:", err);
