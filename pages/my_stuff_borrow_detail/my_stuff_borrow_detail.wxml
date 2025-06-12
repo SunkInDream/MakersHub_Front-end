@@ -31,7 +31,7 @@
       </view>
     </view>
 
-    <view class="section">
+    <view class="section" wx:if="{{apiData.type === 1}}">
       <text class="sub-title">项目信息</text>
       <view class="info">项目编号：{{apiData.link}}
         <image class="copy-icon" bindtap="copyLink" src="/images/activitydetail/copy.svg"></image>
@@ -51,6 +51,21 @@
       <text class="sub-title">归还时间</text>
       <view class="info">
         <text>{{apiData.description}}</text>
+      </view>
+    </view>
+
+    <!-- 已打回状态时显示审核反馈和操作按钮 -->
+    <view wx:if="{{apiData.state === 1}}" class="rejected-section">
+      <!-- 审核反馈信息 -->
+      <view class="feedback-container">
+        <view class="feedback-title">审核反馈</view>
+        <view class="feedback-content">{{apiData.review || '暂无反馈信息'}}</view>
+      </view>
+      
+      <!-- 操作按钮 -->
+      <view class="action-buttons">
+        <button class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</button>
+        <button class="action-btn modify-btn" bindtap="modifyApplication">修改申请</button>
       </view>
     </view>
   </view>
