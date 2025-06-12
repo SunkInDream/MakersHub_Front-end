@@ -27,10 +27,11 @@
     "pages/site_borrow_list/site_borrow_list",
     "pages/duty_application/duty_application",
     "pages/my_stuff_borrow_list/my_stuff_borrow_list",
-    "pages/site_borrow_detail/site_borrow_detail",
+    "pages/my_site_borrow_detail/my_site_borrow_detail",
     "pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail",
     "pages/duty_arrange/duty_arrange",
-    "pages/site_borrow_apply/site_borrow_apply"
+    "pages/site_borrow_apply/site_borrow_apply",
+    "pages/my_site_borrow_list/my_site_borrow_list"
   ],
   "window": {
     "backgroundTextStyle": "light",
