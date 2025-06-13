@@ -1,5 +1,6 @@
 // pages/site_borrow_apply/site_borrow_apply.js
 const API_BASE = "http://146.56.227.73:8000";
+const token = wx.getStorageSync('auth_token');
 const DEBUG = true;
 Page({
   /**
@@ -17,38 +18,13 @@ Page({
       project_id: '',
       mentor_name: '',
       mentor_phone_num: '',
+      site_id: '',
       site: '',
       number: '',
       start_time: '',
       end_time: '',
     },
-    // 存储原始数据，用于比较变更
-    originalData: {
-      name: '',
-      student_id: '',
-      phone_num: '',
-      email: '',
-      purpose: '',
-      project_id: '',
-      mentor_name: '',
-      mentor_phone_num: '',
-      site: '',
-      number: '',
-      start_time: '',
-      end_time: '',
-    },
-    // 跟踪字段变更
-    changedFields: {},
     options: {
-      site: [
-        {
-          site_name: '二基楼B101',
-          number: Array.from({ length: 5 }, (_, i) => 1 + i),
-        },
-        {
-          site_name: '二基楼B208',
-          number: Array.from({length: 3}, (_,i) => 1 + i)
-        }],
       years: Array.from({ length: 10 }, (_, i) => 2024 + i + '年'),
       months: Array.from({ length: 12 }, (_, i) => i + 1 + '月'),
       days: Array.from({ length: 31 }, (_, i) => i + 1 + '日'),
@@ -57,7 +33,9 @@ Page({
     selectedSiteIndex: -1,
     selectedSiteName: '',
     currentNumbers: [],
+    displayNumbers: [], // Numbers with "(已占用)" for occupied ones
     selectedNumber: '',
+    numberOptions: [], // 新增：存储完整的编号选项信息
     
     // 起借日期选择相关
     startSelectedYear: '',
@@ -88,11 +66,8 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-    // 初始化siteNames数组，方便picker使用
-    const siteNames = this.data.options.site.map(item => item.site_name);
-    this.setData({
-      siteNames: siteNames
-    });
+    // 获取所有场地
+    this.fetchSites();
     
     // 检查是否是编辑模式
     if (options.edit === 'true' && options.apply_id) {
@@ -120,6 +95,89 @@ Page({
       this.updateStartTimeInFormData();
     }
   },
+
+  fetchSites() {
+    wx.showLoading({ title: '加载中...' });
+    if (DEBUG) {
+      // Simulate API response
+      setTimeout(() => {
+        const mockData = {
+          code: 200,
+          message: "successfully get all sites",
+          sites: [
+            {
+              site_id: "ST001",
+              site: "二基楼B208+",
+              details: [
+                { number: 1, is_occupied: 0 },
+                { number: 2, is_occupied: 0 },
+                { number: 3, is_occupied: 1 }
+              ]
+            },
+            {
+              site_id: "ST002",
+              site: "二基楼B101",
+              details: [
+                { number: 1, is_occupied: 1 },
+                { number: 2, is_occupied: 0 },
+                { number: 3, is_occupied: 1 }
+              ]
+            }
+          ]
+        };
+        this.processSiteData(mockData);
+        wx.hideLoading();
+      }, 500);
+    } else {
+      wx.request({
+        url: `${API_BASE}/site/get-all`,
+        method: 'GET',
+        header: {
+          'content-type': 'application/json',
+          'Authorization': wx.getStorageSync('token')
+        },
+        success: (res) => {
+          if (res.data.code === 200 && res.data.sites) {
+            this.processSiteData(res.data);
+          } else {
+            wx.showToast({
+              title: res.data.message || '获取场地数据失败',
+              icon: 'none'
+            });
+          }
+        },
+        fail: (err) => {
+          console.error('请求失败:', err);
+          wx.showToast({
+            title: '网络错误，请重试',
+            icon: 'none'
+          });
+        },
+        complete: () => {
+          wx.hideLoading();
+        }
+      });
+    }
+  },
+
+  // Process site data from API
+  processSiteData(data) {
+    const siteNames = data.sites.map(item => item.site);
+    // 初始化 numberOptions
+    const initialNumbers = data.sites[0]?.details || [];
+    const numberOptions = initialNumbers.map(detail => ({
+      number: detail.number,
+      isOccupied: detail.is_occupied === 1,
+      displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+    }));
+    
+    this.setData({
+      siteData: data.sites,
+      siteNames: siteNames,
+      numberOptions: numberOptions, // 初始化
+      displayNumbers: numberOptions.map(opt => opt.displayText)
+    });
+  },
   
   // 从后端获取申请数据
   fetchApplyData(apply_id) {
@@ -143,8 +201,9 @@ Page({
             project_id: "PJ1749636004000",
             mentor_name: "李华",
             mentor_phone_num: "13900139000",
+            site_id: "ST001",
             site: "二基楼B101",
-            number: 1,
+            number: 2,
             start_time: "2024-02-15",
             end_time: "2024-02-25",
             state: 0,
@@ -167,7 +226,7 @@ Page({
     } else {
       wx.request({
         url: `${API_BASE}/site-borrow/detail/${apply_id}`,
-        method: 'GET',
+        method:'GET',
         header: {
           'content-type': 'application/json',
           'Authorization': wx.getStorageSync('token')
@@ -199,7 +258,6 @@ Page({
   
   // 加载申请数据到表单
   loadApplyData(applyData) {
-    // 设置基本表单数据
     const formData = {
       name: applyData.name,
       student_id: applyData.student_id,
@@ -210,109 +268,116 @@ Page({
       mentor_name: applyData.mentor_name,
       mentor_phone_num: applyData.mentor_phone_num,
       site: applyData.site,
+      site_id: applyData.site_id || '', // Ensure site_id is included
       number: applyData.number,
       start_time: applyData.start_time,
       end_time: applyData.end_time
     };
     
-    // 同时保存原始数据用于比较
-    this.setData({
-      formData: formData,
-      originalData: JSON.parse(JSON.stringify(formData)), // 深拷贝
-      changedFields: {} // 重置变更跟踪
-    });
+    this.setData({ formData });
     
-    // 设置场地信息
+    // Set site information
     const siteIndex = this.data.siteNames.findIndex(site => site === applyData.site);
     if (siteIndex !== -1) {
+      const site = this.data.siteData[siteIndex];
+      
+      // 生成带状态的编号选项
+      const numberOptions = site.details.map(detail => ({
+        number: detail.number,
+        isOccupied: detail.is_occupied === 1,
+        displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+      }));
+      
+      // 筛选可用编号
+      const availableNumbers = numberOptions
+        .filter(opt => !opt.isOccupied)
+        .map(opt => opt.number);
+      
       this.setData({
         selectedSiteIndex: siteIndex,
         selectedSiteName: applyData.site,
-        currentNumbers: this.data.options.site[siteIndex].number
+        selectedSiteId: site.site_id,
+        numberOptions: numberOptions,
+        displayNumbers: numberOptions.map(opt => opt.displayText),
+        currentNumbers: availableNumbers
       });
       
-      // 设置场地编号
-      const numberIndex = this.data.currentNumbers.findIndex(num => num === applyData.number);
-      if (numberIndex !== -1) {
+      // 保留原选中编号（如果可用）
+      if (availableNumbers.includes(applyData.number)) {
+        this.setData({
+          selectedNumber: applyData.number,
+          'formData.number': applyData.number
+        });
+      } else if (applyData.number) {
+        // 如果原编号已被占用，显示但不允许选择
         this.setData({
           selectedNumber: applyData.number
         });
       }
+      this.updateSelectedNumberDisplay();
     }
     
-    // 设置起借日期
+    // Set dates
     if (applyData.start_time) {
       const startDate = new Date(applyData.start_time);
-      const startYear = startDate.getFullYear() + '年';
-      const startMonth = (startDate.getMonth() + 1) + '月';
-      const startDay = startDate.getDate() + '日';
-      
       this.setData({
-        startSelectedYear: startYear,
-        startSelectedMonth: startMonth,
-        startSelectedDay: startDay
+        startSelectedYear: startDate.getFullYear() + '年',
+        startSelectedMonth: (startDate.getMonth() + 1) + '月',
+        startSelectedDay: startDate.getDate() + '日'
       });
-      
       this.updateStartDays();
-      this.updateStartTimeInFormData(); // 添加这行来更新formData
+      this.updateStartTimeInFormData();
     }
     
-    // 设置归还日期
     if (applyData.end_time) {
       const endDate = new Date(applyData.end_time);
-      const endYear = endDate.getFullYear() + '年';
-      const endMonth = (endDate.getMonth() + 1) + '月';
-      const endDay = endDate.getDate() + '日';
-      
       this.setData({
-        endSelectedYear: endYear,
-        endSelectedMonth: endMonth,
-        endSelectedDay: endDay
+        endSelectedYear: endDate.getFullYear() + '年',
+        endSelectedMonth: (endDate.getMonth() + 1) + '月',
+        endSelectedDay: endDate.getDate() + '日'
       });
-      
       this.updateEndDays();
-      this.updateEndTimeInFormData(); // 添加这行来更新formData
+      this.updateEndTimeInFormData();
     }
   },
 
-  // 更新字段变更跟踪
-  updateChangedField(field, value) {
-    console.log(`updateChangedField called with field: ${field}, value:`, value);
-    
-    // 确保值不是undefined
-    if (value === undefined) {
-      console.warn(`Field ${field} value is undefined, skipping update`);
+  // 更新selectedNumber
+  updateSelectedNumberDisplay() {
+    if (!this.data.selectedNumber) {
+      this.setData({
+        selectedNumberDisplay: '请选择',
+        isSelectedOccupied: false
+      });
       return;
     }
     
-    // 比较与原始值是否不同
-    if (this.data.originalData[field] !== value) {
-      // 字段已变更，添加到变更跟踪对象
-      const updatedChangedFields = {
-        ...this.data.changedFields,
-        [field]: value
-      };
-      
-      this.setData({
-        changedFields: updatedChangedFields
-      });
-      
-      console.log(`字段 ${field} 已变更为:`, value);
-    } else {
-      // 字段值与原始值相同，从变更跟踪中删除
-      const changedFields = { ...this.data.changedFields };
-      delete changedFields[field];
-      this.setData({
-        changedFields: changedFields
-      });
-      console.log(`字段 ${field} 恢复为原始值，已从变更跟踪中移除`);
-    }
+    // 在 numberOptions 中查找当前选中的选项
+    const selectedOption = this.data.numberOptions.find(
+      opt => opt.number === this.data.selectedNumber
+    );
     
-    console.log('当前变更字段:', this.data.changedFields);
+    if (selectedOption) {
+      this.setData({
+        selectedNumberDisplay: selectedOption.displayText,
+        isSelectedOccupied: selectedOption.isOccupied
+      });
+    } else {
+      // 如果没找到（如编辑模式中的历史数据），检查是否被占用
+      const isOccupied = this.data.displayNumbers.some(
+        text => text.includes(`${this.data.selectedNumber} (已占用)`)
+      );
+      
+      this.setData({
+        selectedNumberDisplay: isOccupied ? 
+          `${this.data.selectedNumber} (已占用)` : 
+          this.data.selectedNumber.toString(),
+        isSelectedOccupied: isOccupied
+      });
+    }
   },
-
-  // 表单焦点处理函数
-  onLeaderNameFocus() {
+  
+   // 表单焦点处理函数
+   onLeaderNameFocus() {
     this.setData({ isLeaderNameFocused: true });
   },
   onLeaderNameBlur(e) {
@@ -350,11 +415,9 @@ Page({
       isLeaderPhoneFocused: false,
       'formData.phone_num': value
     });
-    if (this.data.isEdit) {
-      this.updateChangedField('phone_num', value);
-    }
+    console.log("new_phone_num: ", value);
   },
-  
+
   onEmailFocus() {
     this.setData({ isEmailFocused: true });
   },
@@ -364,9 +427,7 @@ Page({
       isEmailFocused: false,
       'formData.email': value
     });
-    if (this.data.isEdit) {
-      this.updateChangedField('email', value);
-    }
+    console.log("new_email: ", value);
   },
   
   onDescriptionFocused() {
@@ -378,9 +439,7 @@ Page({
       isDescriptionFocused: false,
       'formData.purpose': value
     });
-    if (this.data.isEdit) {
-      this.updateChangedField('purpose', value);
-    }
+    console.log("new_purpose: ", value);
   },
   
   onAdvisorNameFocus() {
@@ -392,9 +451,7 @@ Page({
       isAdvisorNameFocused: false,
       'formData.mentor_name': value
     });
-    if (this.data.isEdit) {
-      this.updateChangedField('mentor_name', value);
-    }
+    console.log("new_mentor_name: ", value);
   },
   
   onAdvisorPhoneFocus() {
@@ -406,44 +463,69 @@ Page({
       isAdvisorPhoneFocused: false,
       'formData.mentor_phone_num': value
     });
-    if (this.data.isEdit) {
-      this.updateChangedField('mentor_phone_num', value);
-    }
+    console.log("new_mentor_phone_num: ", value);
   },
 
   // 场地选择处理
   onSiteChange(e) {
     const siteIndex = e.detail.value;
-    const siteName = this.data.options.site[siteIndex].site_name;
+    const site = this.data.siteData[siteIndex];
+    
+    // 生成带状态的编号选项
+    const numberOptions = site.details.map(detail => ({
+      number: detail.number,
+      isOccupied: detail.is_occupied === 1,
+      displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+    }));
+    
+    // 筛选可用编号
+    const availableNumbers = numberOptions
+      .filter(opt => !opt.isOccupied)
+      .map(opt => opt.number);
     
     this.setData({
       selectedSiteIndex: siteIndex,
-      selectedSiteName: siteName,
-      currentNumbers: this.data.options.site[siteIndex].number,
+      selectedSiteName: site.site,
+      selectedSiteId: site.site_id,
+      numberOptions: numberOptions,
+      displayNumbers: numberOptions.map(opt => opt.displayText),
+      currentNumbers: availableNumbers,
       selectedNumber: '', // 重置编号选择
-      'formData.site': siteName
+      'formData.site': site.site,
+      'formData.site_id': site.site_id,
+      'formData.number': ''
     });
-    
-    if (this.data.isEdit) {
-      this.updateChangedField('site', siteName);
-    }
+    this.updateSelectedNumberDisplay(); 
   },
   
   // 场地编号选择处理
   onSiteNumberChange(e) {
-    const numberIndex = e.detail.value;
-    const number = this.data.currentNumbers[numberIndex];
+    const selectedIndex = e.detail.value;
+    const selectedOption = this.data.numberOptions[selectedIndex];
     
+    // 总是更新选中的编号和显示文本，但根据占用状态决定是否更新表单数据
     this.setData({
-      selectedNumber: number,
-      'formData.number': number
+      selectedNumber: selectedOption.number,
     });
+    this.updateSelectedNumberDisplay();
     
-    if (this.data.isEdit) {
-      this.updateChangedField('number', number);
+    if (selectedOption.isOccupied) {
+      wx.showToast({
+        title: '该场地已被占用，请选择其他编号',
+        icon: 'none'
+      });
+      // 清空表单中的场地编号（不更新表单数据）
+      this.setData({
+        'formData.number': ''
+      });
+      console.log("formatData.number", this.data.formData.number);
+    } else {
+      // 更新表单数据
+      this.setData({
+        'formData.number': selectedOption.number
+      });
     }
   },
-  
  
   // 起借日期 - 年份选择处理
   onYearChange(e) {
@@ -558,13 +640,7 @@ Page({
     this.setData({
       'formData.start_time': formattedDate
     });
-    
-    if (this.data.isEdit) {
-      // 直接使用formattedDate，不要从this.data中读取
-      this.updateChangedField('start_time', formattedDate);
-      console.log('更新起借日期:', formattedDate);
-    }
-},
+  },
 
   // 更新formData中的end_time
   updateEndTimeInFormData() {
@@ -580,12 +656,6 @@ Page({
       this.setData({
         'formData.end_time': formattedDate
       });
-      
-      if (this.data.isEdit) {
-        // 直接使用formattedDate，不要从this.data中读取
-        this.updateChangedField('end_time', formattedDate);
-        console.log('更新归还日期:', formattedDate);
-      }
   },
 
   // 显示场地编号规则
@@ -599,91 +669,88 @@ Page({
   
   // 表单验证
   validateForm() {
-    this.setData({ isValid: true }); // 重置验证状态
-    const { formData } = this.data;
-    
-    if (!formData.name) {
+    // 重置验证状态
+    this.setData({ isValid: true });
+
+    // 1. 借用人姓名
+    if (!this.data.formData.name) {
       wx.showToast({ title: '请输入借用人姓名', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.student_id) {
+    // 2. 借用人学号
+    if (!this.data.formData.student_id) {
       wx.showToast({ title: '请输入借用人学号', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.phone_num) {
+    // 3. 借用人电话
+    if (!this.data.formData.phone_num) {
       wx.showToast({ title: '请输入借用人电话', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.email) {
+    // 4. 借用人邮箱
+    if (!this.data.formData.email) {
       wx.showToast({ title: '请输入借用人邮箱', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.purpose) {
+    // 5. 借用用途
+    if (!this.data.formData.purpose) {
       wx.showToast({ title: '请输入借用用途', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.mentor_name) {
+    // 6. 指导老师姓名
+    if (!this.data.formData.mentor_name) {
       wx.showToast({ title: '请输入指导老师姓名', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!formData.mentor_phone_num) {
+    // 7. 指导老师电话
+    if (!this.data.formData.mentor_phone_num) {
       wx.showToast({ title: '请输入指导老师电话', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
+    // 8. 场地
     if (!this.data.selectedSiteName) {
       wx.showToast({ title: '请选择场地', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
+    // 9. 场地编号
     if (!this.data.selectedNumber) {
       wx.showToast({ title: '请选择场地编号', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
+    } else if (this.data.isSelectedOccupied) {
+      wx.showToast({ title: '所选场地已被占用，请选择其他编号', icon: 'none' });
+      this.setData({ isValid: false });
     }
-    
-    if (!this.data.startSelectedYear || !this.data.startSelectedMonth || !this.data.startSelectedDay) {
+    // 10. 起借日期
+    if (!this.data.formData.start_time) {
       wx.showToast({ title: '请选择起借日期', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    if (!this.data.endSelectedYear || !this.data.endSelectedMonth || !this.data.endSelectedDay) {
+    // 11. 归还日期
+    if (!this.data.formData.end_time) {
       wx.showToast({ title: '请选择归还日期', icon: 'none' });
       this.setData({ isValid: false });
-      return false;
     }
-    
-    // 验证归还日期是否晚于起借日期
-    // 使用字符串比较代替Date对象（格式为YYYY-MM-DD）
-    if (this.data.formData.end_time <= this.data.formData.start_time) {
-      wx.showToast({ 
-        title: `归还日期(${this.data.formData.end_time})必须晚于起借日期(${this.data.formData.start_time})`, 
-        icon: 'none' 
-      });
-      this.setData({ isValid: false });
+
+    // 12. 归还日期必须晚于起借日期
+    if (this.data.formData.start_time && this.data.formData.end_time) {
+      if (this.data.formData.end_time <= this.data.formData.start_time) {
+        wx.showToast({
+          title: `归还日期(${this.data.formData.end_time})必须晚于起借日期(${this.data.formData.start_time})`,
+          icon: 'none'
+        });
+        this.setData({ isValid: false });
+      }
     }
-    
-    return true;
+
+    // 最终返回验证结果（虽然微信小程序里 return 值可能无效，但这里可以让逻辑更清晰）
+    return this.data.isValid;
   },
   
   // 提交表单
   onSubmit() {
     // 验证表单
+    this.validateForm();
+    console.log("isValid: ", this.data.isValid);
     if (!this.data.isValid) {
       wx.hideLoading();
       return;
@@ -695,12 +762,13 @@ Page({
     const submitData = {
       name: this.data.formData.name,
       student_id: this.data.formData.student_id,
-      phonenum: this.data.formData.phone_num, // 注意字段名改为 phonenum
+      phone_num: this.data.formData.phone_num,
       email: this.data.formData.email,
       purpose: this.data.formData.purpose,
       project_id: this.data.formData.project_id || '',
       mentor_name: this.data.formData.mentor_name,
       mentor_phone_num: this.data.formData.mentor_phone_num,
+      site_id: this.data.formData.site_id,
       site: this.data.selectedSiteName,
       number: this.data.selectedNumber,
       start_time: this.data.formData.start_time,
@@ -716,11 +784,10 @@ Page({
         // 模拟API调用
         setTimeout(() => {
           const mockResponse = {
-            code: 200,
+            code: 400,
             message: "successfully update application",
             data: {
-              apply_id: this.data.apply_id,
-              changed: submitData
+              apply_id: this.data.apply_id
             }
           };
           
@@ -736,6 +803,13 @@ Page({
               }
             });
             console.log('修改成功，提交数据:', submitData);
+          } else if (mockResponse.code === 400) {
+            wx.showModal({
+              content: '所选场地已被他人申请，请重新选择并提交',
+              showCancel: false,
+              confirmColor: '#00ADB5'
+            });
+            this.fetchSites();
           } else {
             wx.showToast({
               title: mockResponse.message || '修改失败',
@@ -747,7 +821,7 @@ Page({
       } else {
         wx.request({
           url: `${API_BASE}/site-borrow/update/${this.data.apply_id}`,
-          method: 'PATCH', // 保持 PATCH 方法，因为接口通常用于更新
+          method: 'PATCH',
           header: {
             'content-type': 'application/json',
             'Authorization': wx.getStorageSync('token')
@@ -766,6 +840,13 @@ Page({
                 }
               });
               console.log("修改成功，提交数据:", submitData);
+            } else if(res.data.code === 400) {
+              wx.showModal({
+                content: '所选场地已被他人申请，请重新选择并提交',
+                showCancel: false,
+                confirmColor: '#00ADB5'
+              });
+              this.fetchSites();
             } else {
               wx.showToast({
                 title: res.data.message || '修改失败',
@@ -786,14 +867,14 @@ Page({
         });
       }
     } else {
-      // 新申请模式，发送完整表单（逻辑不变）
+      // 新申请模式，发送完整表单
       console.log('提交的新申请数据:', submitData);
       
       if (DEBUG) {
         // 模拟API调用
         setTimeout(() => {
           const mockResponse = {
-            code: 200,
+            code: 400,
             message: "successfully create new site-application",
             data: {
               event_id: "LB" + Date.now()
@@ -812,6 +893,12 @@ Page({
               }
             });
             console.log('提交的新申请数据:', submitData);
+          } else if (mockResponse.code === 400) {
+            wx.showToast({
+              title: '所选场地已被他人申请',
+              icon: 'error'
+            });
+            this.fetchSites();
           } else {
             wx.showToast({
               title: mockResponse.message || '申请失败',
@@ -842,6 +929,13 @@ Page({
                   }, 1500);
                 }
               });
+            } else if(res.data.code === 400) {
+              wx.showModal({
+                content: '所选场地已被他人申请，请重新选择并提交',
+                showCancel: false,
+                confirmColor: '#00ADB5'
+              });
+              this.fetchSites();
             } else {
               wx.showToast({
                 title: res.data.message || '申请失败',

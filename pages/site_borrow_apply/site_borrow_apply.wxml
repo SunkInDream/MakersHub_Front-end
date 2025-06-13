@@ -95,10 +95,13 @@
       <picker 
         class="site-picker"
         mode="selector" 
-        range="{{currentNumbers}}" 
+        range="{{displayNumbers}}" 
         bindchange="onSiteNumberChange"
         disabled="{{selectedSiteIndex < 0}}">
-        <view class="picker-content">{{selectedNumber || '请选择'}}</view>
+        <view class="picker-content" 
+        style="background-color: {{isSelectedOccupied? '#FFDBE4' : ''}}; color: {{isSelectedOccupied ? '#E33C64' : ''}}; text-decoration: {{isSelectedOccupied? 'line-through' : ''}};">
+            {{selectedNumberDisplay || '请选择'}}
+        </view>
       </picker>
     </view>
   </view>
