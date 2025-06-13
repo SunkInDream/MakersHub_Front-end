@@ -67,7 +67,7 @@
     </view>
     <!-- 操作按钮 -->
     <view wx:if="{{apiData.state === 0 || apiData.state === 1}}" class="action-buttons" >
-        <view wx:if="{{apiData.state === 1}}" class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
+        <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
         <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
       </view>
   </view>

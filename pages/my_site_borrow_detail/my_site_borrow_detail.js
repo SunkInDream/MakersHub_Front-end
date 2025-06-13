@@ -1,5 +1,6 @@
 // pages/my_site_borrow_detail/my_site_borrow_detail.js
 const API_BASE = "http://146.56.227.73:8000";
+const DEBUG = true; // 调试模式标志
 
 Page({
   /**
@@ -27,6 +28,13 @@ Page({
         apply_id: options.apply_id
       });
       this.fetchSiteBorrowDetail(options.apply_id);
+    } else if (DEBUG) {
+      // 调试模式：使用模拟的apply_id
+      const mockApplyId = "LB1749636004000";
+      this.setData({
+        apply_id: mockApplyId
+      });
+      this.fetchSiteBorrowDetail(mockApplyId);
     } else {
       wx.showToast({
         title: '获取申请id失败',
@@ -42,37 +50,65 @@ Page({
     wx.showLoading({
       title: '加载中...',
     });
-
-    wx.request({
-      url: `${API_BASE}/site-borrow/detail/${apply_id}`,
-      method: 'GET',
-      header: {
-        'content-type': 'application/json',
-        'Authorization': wx.getStorageSync('token')
-      },
-      success: (res) => {
-        if (res.data.code === 200) {
-          this.setData({
-            apiData: res.data.data
-          });
-        } else {
+    if(DEBUG) {
+      // 调试模式：使用模拟数据
+      setTimeout(() => {
+        const mockData = {
+            apply_id: apply_id,
+            name: "张三",
+            student_id: "2023141460079",
+            phone_num: "13800138000",
+            email: "student@example.com",
+            purpose: "创新项目展示与研讨",
+            project_id: "PJ1749636004000",
+            mentor_name: "李华",
+            mentor_phone_num: "13900139000",
+            site: "二基楼B101",
+            number: 1,
+            start_time: "2024-02-15",
+            end_time: "2024-02-25",
+            state: 0,
+            review: ""
+          };        
+        this.setData({
+          apiData: mockData
+        });
+        
+        console.log('加载的申请详情:', mockData);
+        wx.hideLoading();
+      }, 500);
+    } else {
+      wx.request({
+        url: `${API_BASE}/site-borrow/detail/${apply_id}`,
+        method: 'GET',
+        header: {
+          'content-type': 'application/json',
+          'Authorization': wx.getStorageSync('token')
+        },
+        success: (res) => {
+          if (res.data.code === 200) {
+            this.setData({
+              apiData: res.data.data
+            });
+          } else {
+            wx.showToast({
+              title: res.data.message || '获取详情失败',
+              icon: 'none'
+            });
+          }
+        },
+        fail: (err) => {
+          console.error('请求失败:', err);
           wx.showToast({
-            title: res.data.message || '获取详情失败',
+            title: '网络错误，请重试',
             icon: 'none'
           });
+        },
+        complete: () => {
+          wx.hideLoading();
         }
-      },
-      fail: (err) => {
-        console.error('请求失败:', err);
-        wx.showToast({
-          title: '网络错误，请重试',
-          icon: 'none'
-        });
-      },
-      complete: () => {
-        wx.hideLoading();
-      }
-    });
+      });
+    }
   },
 
   /**
@@ -148,8 +184,9 @@ Page({
    * 修改申请
    */
   modifyApplication() {
+    // 直接跳转到申请页面，并传递apply_id参数
     wx.navigateTo({
-      url: `/pages/site_borrow_edit/site_borrow_edit?apply_id=${this.data.apply_id}`
+      url: `/pages/site_borrow_apply/site_borrow_apply?edit=true&apply_id=${this.data.apply_id}`
     });
   },
 
