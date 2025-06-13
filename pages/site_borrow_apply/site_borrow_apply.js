@@ -1,7 +1,7 @@
 // pages/site_borrow_apply/site_borrow_apply.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
-const DEBUG = true;
+const DEBUG = false;
 Page({
   /**
    * 页面的初始数据
@@ -55,6 +55,7 @@ Page({
     isLeaderPhoneFocused: false,
     isEmailFocused: false,
     isDescriptionFocused: false,
+    isProjectIdFocused: false,
     isAdvisorNameFocused: false,
     isAdvisorPhoneFocused: false,
 
@@ -66,6 +67,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    console.log("token", token);
     // 获取所有场地
     this.fetchSites();
     
@@ -134,7 +136,7 @@ Page({
         method: 'GET',
         header: {
           'content-type': 'application/json',
-          'Authorization': wx.getStorageSync('token')
+          'Authorization': token
         },
         success: (res) => {
           if (res.data.code === 200 && res.data.sites) {
@@ -167,8 +169,8 @@ Page({
     const initialNumbers = data.sites[0]?.details || [];
     const numberOptions = initialNumbers.map(detail => ({
       number: detail.number,
-      isOccupied: detail.is_occupied === 1,
-      displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+      isOccupied: detail.is_occupied === true,
+      displayText: detail.is_occupied === true ? `${detail.number} (已占用)` : `${detail.number}`
     }));
     
     this.setData({
@@ -225,11 +227,11 @@ Page({
       }, 500); // 模拟网络延迟
     } else {
       wx.request({
-        url: `${API_BASE}/site-borrow/detail/${apply_id}`,
+        url: `${API_BASE}/sites-borrow/detail/${apply_id}`,
         method:'GET',
         header: {
           'content-type': 'application/json',
-          'Authorization': wx.getStorageSync('token')
+          'Authorization': token
         },
         success: (res) => {
           if (res.data.code === 200 && res.data.data) {
@@ -284,8 +286,8 @@ Page({
       // 生成带状态的编号选项
       const numberOptions = site.details.map(detail => ({
         number: detail.number,
-        isOccupied: detail.is_occupied === 1,
-        displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+        isOccupied: detail.is_occupied === true,
+        displayText: detail.is_occupied === true ? `${detail.number} (已占用)` : `${detail.number}`
       }));
       
       // 筛选可用编号
@@ -442,6 +444,18 @@ Page({
     console.log("new_purpose: ", value);
   },
   
+ onProjectIdFocus() {
+    this.setData({ isProjectIdFocused: true });
+  },
+  onProjectIdBlur(e) {
+    const value = e.detail.value;
+    this.setData({ 
+      isProjectIdFocused: false,
+      'formData.project_id': value
+    });
+    console.log("newProjectId: ", value);
+  },
+
   onAdvisorNameFocus() {
     this.setData({ isAdvisorNameFocused: true });
   },
@@ -474,8 +488,8 @@ Page({
     // 生成带状态的编号选项
     const numberOptions = site.details.map(detail => ({
       number: detail.number,
-      isOccupied: detail.is_occupied === 1,
-      displayText: detail.is_occupied === 1 ? `${detail.number} (已占用)` : `${detail.number}`
+      isOccupied: detail.is_occupied === true,
+      displayText: detail.is_occupied === true ? `${detail.number} (已占用)` : `${detail.number}`
     }));
     
     // 筛选可用编号
@@ -820,11 +834,11 @@ Page({
         }, 1000); // 模拟网络延迟
       } else {
         wx.request({
-          url: `${API_BASE}/site-borrow/update/${this.data.apply_id}`,
+          url: `${API_BASE}/sites-borrow/update/${this.data.apply_id}`,
           method: 'PATCH',
           header: {
             'content-type': 'application/json',
-            'Authorization': wx.getStorageSync('token')
+            'Authorization': token
           },
           data: submitData,
           success: (res) => {
@@ -910,11 +924,11 @@ Page({
         }, 1000); // 模拟网络延迟
       } else {
         wx.request({
-          url: `${API_BASE}/site-borrow/post`,
+          url: `${API_BASE}/sites-borrow/post`,
           method: 'POST',
           header: {
             'content-type': 'application/json',
-            'Authorization': wx.getStorageSync('token')
+            'Authorization': token
           },
           data: submitData,
           success: (res) => {

@@ -1,7 +1,7 @@
 // pages/my_site_borrow_detail/my_site_borrow_detail.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
-const DEBUG = true; // 调试模式标志
+const DEBUG = false; // 调试模式标志
 
 Page({
   /**
@@ -84,7 +84,7 @@ Page({
         method: 'GET',
         header: {
           'content-type': 'application/json',
-          'Authorization': wx.getStorageSync('token')
+          'Authorization': token
         },
         success: (res) => {
           if (res.data.code === 200) {
@@ -145,7 +145,7 @@ Page({
             method: 'POST',
             header: {
               'content-type': 'application/json',
-              'Authorization': wx.getStorageSync('token')
+              'Authorization': token
             },
             success: (res) => {
               if (res.data.code === 200) {
