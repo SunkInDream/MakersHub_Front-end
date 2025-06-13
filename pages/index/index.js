@@ -275,7 +275,7 @@ Page({
 
   actuallyNavigateToVenue: function () {
     wx.navigateTo({
-      url: "/pages",
+      url: "/pages/site_borrow_apply/site_borrow_apply",
       success: () => console.log("跳转成功"),
       fail: (err) => {
         console.error("跳转失败:", err);
