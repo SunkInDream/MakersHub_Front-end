@@ -511,7 +511,7 @@ Page({
     
     if (selectedOption.isOccupied) {
       wx.showToast({
-        title: '该场地已被占用，请选择其他编号',
+        title: '该工位已被占用，请选择其他编号',
         icon: 'none'
       });
       // 清空表单中的场地编号（不更新表单数据）
@@ -714,10 +714,10 @@ Page({
     }
     // 9. 场地编号
     if (!this.data.selectedNumber) {
-      wx.showToast({ title: '请选择场地编号', icon: 'none' });
+      wx.showToast({ title: '请选择工位编号', icon: 'none' });
       this.setData({ isValid: false });
     } else if (this.data.isSelectedOccupied) {
-      wx.showToast({ title: '所选场地已被占用，请选择其他编号', icon: 'none' });
+      wx.showToast({ title: '所选工位已被占用，请选择其他工位编号', icon: 'none' });
       this.setData({ isValid: false });
     }
     // 10. 起借日期
@@ -931,7 +931,7 @@ Page({
               });
             } else if(res.data.code === 400) {
               wx.showModal({
-                content: '所选场地已被他人申请，请重新选择并提交',
+                content: '所选工位已被他人申请，请重新选择并提交',
                 showCancel: false,
                 confirmColor: '#00ADB5'
               });

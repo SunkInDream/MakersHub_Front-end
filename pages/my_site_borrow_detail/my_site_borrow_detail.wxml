@@ -30,7 +30,7 @@
         场地用途：{{apiData.start_time}}
       </view>
       <view class="info">
-        借用场地：{{apiData.site}}  [编号{{apiData.number}}]
+        借用场地：{{apiData.site}}  [工位 {{apiData.number}}]
       </view>
     </view>
 

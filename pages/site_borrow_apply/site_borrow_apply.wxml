@@ -91,7 +91,7 @@
         value="{{selectedSiteIndex}}">
         <view class="picker-content">{{selectedSiteName || '请选择'}}</view>
       </picker>
-      <text class="site-label">编号：</text>
+      <text class="site-label">工位：</text>
       <picker 
         class="site-picker"
         mode="selector" 
