@@ -59,6 +59,15 @@
       bindblur="onDescriptionBlur">
     </textarea>
 
+    <text class="form-label">项目编号</text>
+    <input
+      class="input-field {{ isProjectIdFocused ? 'focused' : '' }}"
+      placeholder="项目编号"
+      value="{{formData.project_id}}"
+      data-field="ProjectId"
+      bindfocus="onProjectIdFocus"
+      bindblur="onProjectIdBlur" />
+
     <text class="form-label">指导老师姓名</text>
     <input
       class="input-field {{ isAdvisorNameFocused ? 'focused' : '' }}"
