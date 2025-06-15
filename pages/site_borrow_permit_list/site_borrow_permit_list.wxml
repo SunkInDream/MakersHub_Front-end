@@ -71,7 +71,7 @@
                 <view class="state" style="background-color: {{stateColors[item.state]}}; color: {{stateText[item.state]}}">{{stateTag[item.state]}}</view>
               </view>
             </view>
-            <view class="detail-btn" data-event-id="{{item.apply_id}}" bindtap="navigateToDetail">修改审核</view>
+            <view class="detail-btn" data-apply-id="{{item.apply_id}}" bindtap="navigateToDetail">修改审核</view>
           </view>
         </block>
       </view>
@@ -89,7 +89,7 @@
                 <view class="state" style="background-color: {{stateColors[item.state]}}; color: {{stateText[item.state]}}">{{stateTag[item.state]}}</view>
               </view>
             </view>
-            <view class="detail-btn" data-event-id="{{item.apply_id}}" bindtap="navigateToDetail">详情</view>
+            <view class="detail-btn" data-apply-id="{{item.apply_id}}" bindtap="navigateToDetail">详情</view>
           </view>
         </block>
       </view>
