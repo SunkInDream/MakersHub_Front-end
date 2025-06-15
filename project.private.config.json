@@ -24,6 +24,27 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/my_xiumi_list/my_xiumi_link",
+          "pathName": "pages/my_xiumi_list/my_xiumi_link",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/site_borrow_permit/site_borrow_permit",
+          "pathName": "pages/site_borrow_permit/site_borrow_permit",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/site_borrow_permit_list/site_borrow_permit_list",
+          "pathName": "pages/site_borrow_permit_list/site_borrow_permit_list",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/team_stuff_borrow_permit/team_stuff_borrow_permit",
           "pathName": "pages/team_stuff_borrow_permit/team_stuff_borrow_permit",
           "query": "",
@@ -229,13 +250,6 @@
         {
           "name": "pages/object_borrow/object_borrow",
           "pathName": "pages/object_borrow/object_borrow",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/site_borrow_list/site_borrow_list",
-          "pathName": "pages/site_borrow_list/site_borrow_list",
           "query": "",
           "launchMode": "default",
           "scene": null

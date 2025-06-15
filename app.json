@@ -11,7 +11,7 @@
     "pages/task/task",
     "pages/schedule/schedule",
     "pages/activity_submit/activity_submit",
-    "pages/xiumi/xiumi",
+    "pages/xiumi_submit/xiumi_submit",
     "pages/3D/3D",
     "pages/MyPoints/MyPoints",
     "pages/activitydetail/activitydetail",
@@ -31,7 +31,8 @@
     "pages/my_stuff_borrow_detail/my_stuff_borrow_detail",
     "pages/duty_arrange/duty_arrange",
     "pages/site_borrow_apply/site_borrow_apply",
-    "pages/my_site_borrow_list/my_site_borrow_list"
+    "pages/my_site_borrow_list/my_site_borrow_list",
+    "pages/my_xiumi_list/my_xiumi_link"
   ],
   "window": {
     "backgroundTextStyle": "light",
