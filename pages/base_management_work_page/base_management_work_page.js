@@ -59,5 +59,9 @@ Page({
   // 其余按钮保留空函数以避免报错（你可以继续补充）
   navigate1() {},
   navigate2() {},
-  navigate4() {}
+  navigate4() {
+    wx.navigateTo({
+      url: '/pages/site_borrow_permit_list/site_borrow_permit_list'
+    });
+  }
 });

@@ -1,5 +1,5 @@
 <!--pages/my_site_borrow_list/my_site_borrow_list.wxml-->
-<!--pages/my_stuff_borrow/my_stuff_borrow.wxml-->
+
 <view class="container">
   <!-- 顶部导航栏，包含页面标题和编辑图标 -->
   <navBar class="navbar"
