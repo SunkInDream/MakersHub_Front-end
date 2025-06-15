@@ -1,37 +1,38 @@
-<!--pages/personal_stuff_borrow_permit.wxml-->
+<!-- pages/personal_stuff_borrow_permit/personal_stuff_borrow_permit.wxml -->
 
 <view class="container">
+  <!-- 顶部导航栏 -->
   <navBar 
     title='{{applyDetail.type === 0 ? "个人借物申请单" : "团队借物申请单"}}' 
     background='#222831' 
     color='#fff' 
-    back="{{true}}" 
-    home="{{true}}" 
-    iconTheme='white'
+    back="{{true}}"  
+    home="{{true}}"  
+    iconTheme='white' 
     bindback="handlerGobackClick" 
     bindhome="handlerGohomeClick">
   </navBar>
 
-  <!-- 加载中状态 -->
+  <!-- 加载中 -->
   <view class="loading-container" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
 
-  <!-- 主要内容 -->
+  <!-- 主体内容 -->
   <view class="form-container" wx:if="{{!loading}}">
     <view class="form-header">{{applyDetail.type === 0 ? "个人借物申请单" : "团队借物申请单"}}</view>
 
-    <!-- 申请编号 -->
+    <!-- 申请编号
     <view class="form-item">
       <text class="form-label">申请编号</text>
-      <view class="form-input">{{applyDetail.borrow_id}}</view>
-    </view>
+      <view class="form-input">{{applyDetail.sb_id}}</view>
+    </view> -->
 
-    <!-- 任务名称 -->
+    <!-- 任务名称
     <view class="form-item" wx:if="{{applyDetail.task_name}}">
       <text class="form-label">任务名称</text>
       <view class="form-input">{{applyDetail.task_name}}</view>
-    </view>
+    </view> -->
 
     <!-- 姓名 -->
     <view class="form-item">
@@ -54,7 +55,7 @@
     <!-- 电话 -->
     <view class="form-item">
       <text class="form-label">电话</text>
-      <view class="form-input">{{applyDetail.phone}}</view>
+      <view class="form-input">{{applyDetail.phone_num}}</view>
     </view>
 
     <!-- 邮箱 -->
@@ -63,21 +64,21 @@
       <view class="form-input">{{applyDetail.email}}</view>
     </view>
 
+    <view class="form-item">
+      <text class="form-label">年级</text>
+      <view class="form-input">{{applyDetail.grade}}</view>
+    </view>
+
     <!-- 团队借物特有字段 -->
     <block wx:if="{{applyDetail.type === 1}}">
-      <!-- 项目编号 -->
       <view class="form-item" wx:if="{{applyDetail.project_id}}">
         <text class="form-label">项目编号</text>
         <view class="form-input">{{applyDetail.project_id}}</view>
       </view>
-
-      <!-- 指导老师姓名 -->
       <view class="form-item" wx:if="{{applyDetail.advisor_name}}">
         <text class="form-label">指导老师</text>
         <view class="form-input">{{applyDetail.advisor_name}}</view>
       </view>
-
-      <!-- 指导老师电话 -->
       <view class="form-item" wx:if="{{applyDetail.advisor_phone}}">
         <text class="form-label">指导老师电话</text>
         <view class="form-input">{{applyDetail.advisor_phone}}</view>
@@ -89,16 +90,14 @@
       <text class="form-label">借用物资</text>
       <view class="form-input">
         <block wx:for="{{materialsList}}" wx:key="id">
-          <text>{{item.text}}\n</text>
+          <text>{{item.text}}</text>
         </block>
-        <!-- 如果没有格式化的物资列表，显示原始数据 -->
         <block wx:if="{{!materialsList || materialsList.length === 0}}">
-          <block wx:for="{{applyDetail.materials}}" wx:key="index">
-            <text>{{item}}\n</text>
-          </block>
+          <text>无</text>
         </block>
       </view>
     </view>
+
 
     <!-- 借用理由 -->
     <view class="form-item" wx:if="{{applyDetail.content}}">
@@ -132,15 +131,14 @@
       </view>
     </view>
 
-    <!-- 当前状态 -->
+    <!-- 状态 -->
     <view class="form-item">
       <text class="form-label">申请状态</text>
       <view class="form-input">{{applyDetail.status_desc}}</view>
     </view>
-
   </view>
 
-  <!-- 审核操作区域 - 只有状态为0（待审核）时才显示 -->
+  <!-- 审核区域 -->
   <view class="reply-container" wx:if="{{!loading && applyDetail.status === 0}}">
     <textarea 
       class="form-input {{isLinkFocused ? 'focused' : ''}}" 
@@ -158,9 +156,8 @@
     </view>
   </view>
 
-  <!-- 已审核状态提示 -->
+  <!-- 状态提示 -->
   <view class="status-info" wx:if="{{!loading && applyDetail.status !== 0}}">
     <text>此申请已处理：{{applyDetail.status_desc}}</text>
   </view>
-  
 </view>

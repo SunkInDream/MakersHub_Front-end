@@ -2,22 +2,16 @@ const API_BASE = 'http://146.56.227.73:8000';
 const TOKEN_KEY = 'auth_token';
 
 Page({
-  /**
-   * 页面的初始数据
-   */
   data: {
     isLinkFocused: false,
     loading: true,
     borrowId: '',
     replyReason: '',
-    
-    // 借物申请详情数据
     applyDetail: {
       borrow_id: '',
-      task_name: '',
       name: '',
       student_id: '',
-      phone: '',
+      phone_num: '',
       email: '',
       grade: '',
       major: '',
@@ -30,178 +24,125 @@ Page({
       deadline: '',
       status: 0,
       status_desc: '',
-      type: 0 // 0: 个人借物, 1: 团队借物
+      type: 0
     },
-    
-    // 格式化的时间数据
-    borrowTime: {
-      year: '',
-      month: '',
-      day: ''
-    },
-    returnTime: {
-      year: '',
-      month: '',
-      day: ''
-    },
-    
-    // 格式化的物资列表
+    borrowTime: { year: '', month: '', day: '' },
+    returnTime: { year: '', month: '', day: '' },
     materialsList: []
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad: function(options) {
-    console.log('页面参数:', options);
-    
+  onLoad(options) {
+    console.log('[onLoad] 页面加载，接收到参数:', options);
     const borrowId = options.borrow_id;
     if (!borrowId) {
-      wx.showToast({
-        title: '缺少申请ID',
-        icon: 'none'
-      });
-      const that = this;
-      setTimeout(function() {
-        wx.navigateBack();
-      }, 1500);
+      wx.showToast({ title: '缺少申请ID', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
       return;
     }
-    
-    this.setData({ borrowId: borrowId });
+    this.setData({ borrowId });
+    console.log('[onLoad] 设置 borrowId 成功，开始加载详情');
     this.loadApplyDetail(borrowId);
   },
 
-  /**
-   * 加载借物申请详情
-   */
-  loadApplyDetail: function(borrowId) {
+  loadApplyDetail(borrowId) {
     const token = wx.getStorageSync(TOKEN_KEY);
-    const that = this;
-    
     if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
     this.setData({ loading: true });
+    console.log('[loadApplyDetail] 请求开始，borrowId:', borrowId);
 
     wx.request({
-      url: API_BASE + '/borrow/applies/' + borrowId,
+      url: `${API_BASE}/stuff-borrow/detail/${borrowId}`,
       method: 'GET',
       header: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      success: function(response) {
-        console.log('获取申请详情成功:', response);
-        
-        if (response.data && response.data.status === 'ok') {
-          const detail = response.data.data;
-          that.processApplyDetail(detail);
+      success: res => {
+        console.log('[loadApplyDetail] 请求成功:', res);
+        if (res.data && res.data.code === 200) {
+          this.processApplyDetail(res.data.data);
         } else {
-          console.error('获取详情失败:', response.data);
+          console.warn('[loadApplyDetail] 数据状态异常:', res.data);
           wx.showToast({
-            title: (response.data && response.data.message) || '获取详情失败',
+            title: res.data?.message || '获取详情失败',
             icon: 'none'
           });
         }
       },
-      fail: function(error) {
-        console.error('网络请求失败:', error);
-        wx.showToast({
-          title: '网络请求失败',
-          icon: 'none'
-        });
+      fail: err => {
+        console.error('[loadApplyDetail] 网络请求失败:', err);
+        wx.showToast({ title: '网络请求失败', icon: 'none' });
       },
-      complete: function() {
-        that.setData({ loading: false });
+      complete: () => {
+        this.setData({ loading: false });
+        console.log('[loadApplyDetail] 请求完成，loading 状态关闭');
       }
     });
   },
 
-  /**
-   * 处理申请详情数据
-   */
-  processApplyDetail: function(detail) {
-    console.log('处理详情数据:', detail);
-    
-    // 🔥 直接在这里格式化时间数据，不调用任何函数
+  processApplyDetail(detail) {
+    console.log('[processApplyDetail] 处理申请详情数据:', detail);
+    console.log('[processApplyDetail] 原始时间字段:', {
+      start_time: detail.start_time,
+      deadline: detail.deadline
+    });
     let borrowTime = { year: '', month: '', day: '' };
     let returnTime = { year: '', month: '', day: '' };
     let materialsList = [];
+    const statusDescMap = {
+      0: '未审核',
+      1: '已通过',
+      2: '已打回',
+      3: '已归还'
+    };
     
-    // ===== 格式化借用时间（申请时间） =====
-    if (detail.created_at) {
-      console.log('格式化借用时间输入:', detail.created_at);
-      try {
-        const dateMatch = detail.created_at.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (dateMatch) {
-          borrowTime = {
-            year: dateMatch[1],
-            month: dateMatch[2],
-            day: dateMatch[3]
-          };
-          console.log('借用时间格式化结果:', borrowTime);
-        }
-      } catch (error) {
-        console.error('借用时间格式化失败:', error);
+    if (detail.start_time) {
+      const parts = detail.start_time.split('T')[0].split('-');
+      if (parts.length === 3) {
+        borrowTime = {
+          year: parts[0],
+          month: parts[1],
+          day: parts[2]
+        };
+        console.log('[processApplyDetail] 借用时间格式化:', borrowTime);
       }
     }
     
-    // ===== 格式化归还时间 =====
+
     if (detail.deadline) {
-      console.log('格式化归还时间输入:', detail.deadline);
-      try {
-        const dateMatch = detail.deadline.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (dateMatch) {
-          returnTime = {
-            year: dateMatch[1],
-            month: dateMatch[2],
-            day: dateMatch[3]
-          };
-          console.log('归还时间格式化结果:', returnTime);
-        }
-      } catch (error) {
-        console.error('归还时间格式化失败:', error);
+      const match = detail.deadline.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (match) {
+        returnTime = { year: match[1], month: match[2], day: match[3] };
+        console.log('[processApplyDetail] 归还时间格式化:', returnTime);
       }
     }
-    
-    // ===== 格式化物资列表 =====
-    if (detail.materials && Array.isArray(detail.materials)) {
-      console.log('格式化物资列表输入:', detail.materials);
-      detail.materials.forEach((material, index) => {
-        if (typeof material === 'string') {
-          materialsList.push({
-            id: index,
-            text: material
-          });
-        } else if (typeof material === 'object') {
-          materialsList.push({
-            id: index,
-            text: JSON.stringify(material)
-          });
-        } else {
-          materialsList.push({
-            id: index,
-            text: '未知物品'
-          });
-        }
-      });
-      console.log('物资列表格式化结果:', materialsList);
+
+    if (Array.isArray(detail.stuff_list)) {
+      materialsList = detail.stuff_list.map((item, index) => ({
+        id: index,
+        text: item.stuff || '未知物资'
+      }));
+      console.log('[processApplyDetail] 使用 stuff_list 构造物资列表:', materialsList);
     }
-    
-    // 更新页面数据
+    // 否则从 materials 回退
+    else if (Array.isArray(detail.materials)) {
+      materialsList = detail.materials.map((m, i) => ({
+        id: i,
+        text: typeof m === 'string' ? m : JSON.stringify(m)
+      }));
+      console.log('[processApplyDetail] 使用 materials 构造物资列表:', materialsList);
+    }
+
     this.setData({
       applyDetail: {
         borrow_id: detail.borrow_id || '',
-        task_name: detail.task_name || '',
         name: detail.name || '',
-        student_id: detail.student_id || detail.grade || '',
-        phone: detail.phone || '',
+        student_id: detail.student_id || '',
+        phone_num: detail.phone_num || '',
         email: detail.email || '',
         grade: detail.grade || '',
         major: detail.major || '',
@@ -213,90 +154,64 @@ Page({
         created_at: detail.created_at || '',
         deadline: detail.deadline || '',
         status: detail.status || 0,
-        status_desc: detail.status_desc || '',
+        status_desc: statusDescMap[detail.state] || '未知状态',
         type: detail.type || 0
       },
-      borrowTime: borrowTime,
-      returnTime: returnTime,
-      materialsList: materialsList
+      borrowTime,
+      returnTime,
+      materialsList
     });
-    
-    console.log('页面数据更新完成:', this.data);
+
+    console.log('[processApplyDetail] 页面数据已更新');
   },
 
-  /**
-   * 输入框焦点事件
-   */
-  onLinkFocused: function() {
-    this.setData({
-      isLinkFocused: true
-    });
+  onLinkFocused() {
+    console.log('[onLinkFocused] 获得焦点');
+    this.setData({ isLinkFocused: true });
   },
 
-  onLinkBlur: function() {
-    this.setData({
-      isLinkFocused: false
-    });
+  onLinkBlur() {
+    console.log('[onLinkBlur] 失去焦点');
+    this.setData({ isLinkFocused: false });
   },
 
-  /**
-   * 输入事件处理
-   */
-  onInput: function(e) {
+  onInput(e) {
     const field = e.currentTarget.dataset.field;
-    console.log('输入字段:', field, '输入值:', e.detail.value);
+    const value = e.detail.value;
+    console.log('[onInput] 输入字段:', field, '值:', value);
     const updateData = {};
-    updateData[field] = e.detail.value;
+    updateData[field] = value;
     this.setData(updateData);
   },
 
-  /**
-   * 审核操作
-   */
-  onSubmit: function(e) {
+  onSubmit(e) {
     const action = e.currentTarget.dataset.action || '通过';
-    const buttonText = e.target.innerText || action;
-    
-    console.log('审核操作:', buttonText, action);
-    
-    // 判断是通过还是打回
-    const isApprove = buttonText.indexOf('通过') !== -1 || action === 'approve';
-    const isReject = buttonText.indexOf('打回') !== -1 || action === 'reject';
-    
+    const isApprove = action === 'approve' || action.includes('通过');
+    const isReject = action === 'reject' || action.includes('打回');
+
+    console.log('[onSubmit] 操作类型:', action, '通过?', isApprove, '打回?', isReject);
+
     if (isReject && !this.data.replyReason.trim()) {
-      wx.showToast({
-        title: '请输入打回理由',
-        icon: 'none'
-      });
+      wx.showToast({ title: '请输入打回理由', icon: 'none' });
       return;
     }
-    
-    const confirmText = isApprove ? '确认通过此申请？' : '确认打回此申请？';
-    const that = this;
-    
+
     wx.showModal({
       title: '确认操作',
-      content: confirmText,
-      success: function(res) {
+      content: isApprove ? '确认通过此申请？' : '确认打回此申请？',
+      success: res => {
         if (res.confirm) {
-          that.submitReview(isApprove);
+          console.log('[onSubmit] 用户确认操作');
+          this.submitReview(isApprove);
         }
       }
     });
   },
 
-  /**
-   * 提交审核结果
-   */
-  submitReview: function(isApprove) {
+  submitReview(isApprove) {
     const token = wx.getStorageSync(TOKEN_KEY);
-    const that = this;
-    
     if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'none'
-      });
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
@@ -306,60 +221,51 @@ Page({
       reason: isApprove ? '' : this.data.replyReason
     };
 
-    console.log('提交审核数据:', submitData);
+    console.log('[submitReview] 提交数据:', submitData);
 
     wx.showLoading({ title: '处理中...' });
 
     wx.request({
-      url: API_BASE + '/borrow/review',
+      url: `${API_BASE}/stuff-borrow/review`,
       method: 'POST',
       data: submitData,
       header: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      success: function(response) {
+      success: res => {
         wx.hideLoading();
-        console.log('审核结果:', response);
-        
-        if (response.statusCode === 200 || response.statusCode === 201) {
+        console.log('[submitReview] 审核响应:', res);
+        if (res.statusCode === 200 || res.statusCode === 201) {
           wx.showToast({
             title: isApprove ? '审核通过' : '已打回',
             icon: 'success'
           });
-          
-          // 延迟返回上级页面
-          setTimeout(function() {
-            wx.navigateBack();
-          }, 1500);
+          setTimeout(() => wx.navigateBack(), 1500);
         } else {
           wx.showToast({
-            title: (response.data && response.data.message) || '操作失败',
+            title: res.data?.message || '操作失败',
             icon: 'none'
           });
         }
       },
-      fail: function(error) {
+      fail: err => {
         wx.hideLoading();
-        console.error('审核请求失败:', error);
-        wx.showToast({
-          title: '网络错误',
-          icon: 'none'
-        });
+        console.error('[submitReview] 请求失败:', err);
+        wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
   },
 
-  /**
-   * 返回按钮点击事件
-   */
-  handlerGobackClick: function() {
+  handlerGobackClick() {
+    console.log('[handlerGobackClick] 返回按钮被点击');
     wx.navigateBack({
       delta: 1,
-      fail: function() {
-        wx.switchTab({ 
-          url: '/pages/base_management_work_page/base_management_work_page', 
-          fail: function() {
+      fail: () => {
+        console.warn('[handlerGobackClick] navigateBack 失败，尝试跳转首页');
+        wx.switchTab({
+          url: '/pages/base_management_work_page/base_management_work_page',
+          fail: () => {
             wx.navigateTo({ url: '/pages/index/index' });
           }
         });
@@ -367,16 +273,14 @@ Page({
     });
   },
 
-  /**
-   * 首页按钮点击事件
-   */
-  handlerGohomeClick: function() {
+  handlerGohomeClick() {
+    console.log('[handlerGohomeClick] 回到首页按钮被点击');
     wx.switchTab({
       url: '/pages/index/index',
-      fail: function() {
-        wx.navigateTo({ 
-          url: '/pages/index/index', 
-          fail: function() {
+      fail: () => {
+        wx.navigateTo({
+          url: '/pages/index/index',
+          fail: () => {
             wx.showToast({ title: '跳转失败', icon: 'none' });
           }
         });
@@ -384,12 +288,10 @@ Page({
     });
   },
 
-  /**
-   * 下拉刷新
-   */
-  onPullDownRefresh: function() {
+  onPullDownRefresh() {
+    console.log('[onPullDownRefresh] 下拉刷新触发');
     this.loadApplyDetail(this.data.borrowId);
-    setTimeout(function() {
+    setTimeout(() => {
       wx.stopPullDownRefresh();
     }, 1500);
   }
