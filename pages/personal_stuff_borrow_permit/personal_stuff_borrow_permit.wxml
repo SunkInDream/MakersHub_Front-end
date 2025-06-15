@@ -40,16 +40,21 @@
       <view class="form-input">{{applyDetail.name}}</view>
     </view>
 
-    <!-- 学号/年级 -->
+    <!-- 学号 -->
     <view class="form-item">
-      <text class="form-label">{{applyDetail.student_id ? '学号' : '年级'}}</text>
-      <view class="form-input">{{applyDetail.student_id || applyDetail.grade}}</view>
+      <text class="form-label">学号</text>
+      <view class="form-input">{{applyDetail.student_id}}</view>
     </view>
 
     <!-- 专业 -->
     <view class="form-item">
       <text class="form-label">专业</text>
       <view class="form-input">{{applyDetail.major}}</view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">年级</text>
+      <view class="form-input">{{applyDetail.grade}}</view>
     </view>
 
     <!-- 电话 -->
@@ -62,11 +67,6 @@
     <view class="form-item">
       <text class="form-label">邮箱</text>
       <view class="form-input">{{applyDetail.email}}</view>
-    </view>
-
-    <view class="form-item">
-      <text class="form-label">年级</text>
-      <view class="form-input">{{applyDetail.grade}}</view>
     </view>
 
     <!-- 团队借物特有字段 -->
