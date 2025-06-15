@@ -74,7 +74,7 @@ swiper-item {
   display: flex;
   align-items: center;
   width: 619rpx;
-  height: 183rpx;
+  height: auto;
   justify-content: space-between;
   background-color: #ffffff;
   color: #393E46;
