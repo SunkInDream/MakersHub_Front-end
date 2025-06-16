@@ -1,350 +1,267 @@
 const API_BASE = 'http://146.56.227.73:8000';
 const TOKEN_KEY = 'auth_token';
 
-// 独立的日期解析函数
-function parseDate(dateString) {
-  console.log('开始解析日期:', dateString, '类型:', typeof dateString);
-  
-  if (!dateString) {
-    console.log('日期为空，返回默认值');
-    return { year: '----', month: '--', day: '--' };
-  }
-  
+function parseDate(dateStr) {
   try {
-    let date;
-    
-    if (typeof dateString === 'string') {
-      // 处理 ISO 8601 格式: "2025-06-12T06:19:00.881000"
-      if (dateString.includes('T')) {
-        // 移除微秒部分，只保留到秒
-        let cleanDateString = dateString;
-        if (dateString.includes('.')) {
-          cleanDateString = dateString.split('.')[0];
-        }
-        console.log('清理后的日期字符串:', cleanDateString);
-        date = new Date(cleanDateString);
-      }
-      // 处理其他格式
-      else {
-        date = new Date(dateString);
-      }
-    } else {
-      date = new Date(dateString);
-    }
-    
-    console.log('创建的Date对象:', date);
-    console.log('Date对象是否有效:', !isNaN(date.getTime()));
-    
-    if (isNaN(date.getTime())) {
-      console.log('日期解析失败，返回默认值');
-      return { year: '----', month: '--', day: '--' };
-    }
-    
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    
-    const result = {
-      year: year.toString(),
-      month: month.toString().padStart(2, '0'),
-      day: day.toString().padStart(2, '0')
+    if (!dateStr) return { year: '----', month: '--', day: '--' };
+    const clean = dateStr.split('.')[0];
+    const date = new Date(clean);
+    if (isNaN(date)) throw new Error('Invalid date');
+    return {
+      year: date.getFullYear().toString(),
+      month: (date.getMonth() + 1).toString().padStart(2, '0'),
+      day: date.getDate().toString().padStart(2, '0')
     };
-    
-    console.log('最终解析结果:', result);
-    return result;
-    
-  } catch (e) {
-    console.error('日期解析异常:', e, '原始数据:', dateString);
+  } catch {
     return { year: '----', month: '--', day: '--' };
   }
 }
 
 Page({
   data: {
+    borrowId: '',
+    replyReason: '',
     loading: true,
+    isLinkFocused: false,
     applyDetail: {},
-    materialsList: [],
     borrowTime: {},
     returnTime: {},
-    replyReason: '',
-    isLinkFocused: false,
-    borrowId: ''
+    materialsList: []
   },
 
-  onLoad: function(options) {
-    console.log('页面加载参数:', options);
-    if (options.borrow_id) {
-      this.setData({
-        borrowId: options.borrow_id
-      });
-      this.fetchApplyDetail(options.borrow_id);
-    } else {
-      wx.showToast({
-        title: '缺少申请ID',
-        icon: 'error'
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+  onLoad(options) {
+    const borrowId = options?.borrow_id;
+    if (!borrowId) {
+      wx.showToast({ title: '缺少申请ID', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
     }
+    this.setData({ borrowId }, () => this.loadDetail());
   },
 
-  // 获取申请详情
-  fetchApplyDetail: function(borrowId) {
-    this.setData({ loading: true });
-    
+  loadDetail() {
     const token = wx.getStorageSync(TOKEN_KEY);
     if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'error'
-      });
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
-    const requestUrl = API_BASE + '/borrow/applies/' + borrowId;
-    
+    this.setData({ loading: true });
+
     wx.request({
-      url: requestUrl,
+      url: `${API_BASE}/stuff-borrow/detail/${this.data.borrowId}`,
       method: 'GET',
       header: {
-        'Authorization': 'Bearer ' + token,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      success: (res) => {
-        console.log('获取申请详情成功:', res);
-        console.log('返回的数据结构:', JSON.stringify(res.data, null, 2));
-        
-        if (res.statusCode === 200 && res.data && res.data.data) {
-          // 注意：实际数据在 res.data.data 中
-          const rawData = res.data.data;
-          
-          console.log('实际业务数据:', rawData);
-          console.log('后端返回的所有字段:', Object.keys(rawData));
-          
-          // 直接使用后端返回的字段名
-          const applyDetail = {
-            // 申请编号
-            borrow_id: rawData.borrow_id,
-            
-            // 类型
-            type: rawData.type,
-            
-            // 任务名称
-            task_name: rawData.task_name,
-            
-            // 基本信息
-            name: rawData.name,
-            student_id: rawData.student_id || '', // 如果没有学号，显示年级
-            grade: rawData.grade,
-            major: rawData.major,
-            phone: rawData.phone,
-            email: rawData.email,
-            
-            // 团队借物特有字段
-            project_id: rawData.project_number, // 注意：后端用的是 project_number
-            advisor_name: rawData.supervisor_name, // 注意：后端用的是 supervisor_name
-            advisor_phone: rawData.supervisor_phone, // 注意：后端用的是 supervisor_phone
-            
-            // 借用信息
-            materials: rawData.materials,
-            content: rawData.content,
-            
-            // 时间 - 注意：后端用的是 deadline，没有 borrow_date
-            borrow_date: rawData.created_at, // 用创建时间作为申请时间
-            return_date: rawData.deadline, // 用 deadline 作为归还时间
-            
-            // 状态
-            status: rawData.status,
-            status_desc: rawData.status_desc
-          };
-          
-          console.log('映射后的数据:', applyDetail);
-          console.log('准备解析的时间 - 申请时间:', applyDetail.borrow_date);
-          console.log('准备解析的时间 - 归还时间:', applyDetail.return_date);
-          
-          // 处理材料列表
-          let materialsList = [];
-          if (applyDetail.materials && Array.isArray(applyDetail.materials)) {
-            materialsList = applyDetail.materials.map((item, index) => ({
-              id: index,
-              text: item
-            }));
-          }
-
-          // 处理时间格式 - 使用独立函数
-          const borrowTime = parseDate(applyDetail.borrow_date);
-          const returnTime = parseDate(applyDetail.return_date);
-          
-          console.log('解析后的起借时间:', borrowTime);
-          console.log('解析后的归还时间:', returnTime);
-
-          this.setData({
-            applyDetail: applyDetail,
-            materialsList: materialsList,
-            borrowTime: borrowTime,
-            returnTime: returnTime,
-            loading: false
-          });
-          
-          console.log('最终设置的数据:', {
-            applyDetail: this.data.applyDetail,
-            materialsList: this.data.materialsList,
-            borrowTime: this.data.borrowTime,
-            returnTime: this.data.returnTime
-          });
-          
-        } else {
-          console.error('数据格式不正确:', res.data);
-          throw new Error(res.data?.message || '获取数据失败');
+      success: res => {
+        const detail = res.data?.data;
+        if (!detail || res.data.code !== 200) {
+          wx.showToast({ title: res.data?.message || '获取失败', icon: 'none' });
+          return;
         }
-      },
-      fail: (err) => {
-        console.error('获取申请详情失败:', err);
-        wx.showToast({
-          title: '获取数据失败',
-          icon: 'error'
+
+        const statusMap = {
+          0: '未审核',
+          1: '已通过',
+          2: '已打回',
+          3: '已借出'
+        };
+
+        const materialsList = Array.isArray(detail.stuff_list)
+          ? detail.stuff_list.map((m, i) => ({ id: i, text: m.stuff || '未知物资' }))
+          : Array.isArray(detail.materials)
+            ? detail.materials.map((m, i) => ({ id: i, text: typeof m === 'string' ? m : JSON.stringify(m) }))
+            : [];
+
+        this.setData({
+          applyDetail: {
+            borrow_id: detail.sb_id || detail.borrow_id || '',
+            task_name: detail.task_name || '',
+            name: detail.name || '',
+            student_id: detail.student_id || '',
+            phone_num: detail.phone_num || '',
+            email: detail.email || '',
+            grade: detail.grade || '',
+            major: detail.major || '',
+            project_id: detail.project_num || detail.project_id || '',
+            advisor_name: detail.mentor_name || detail.advisor_name || '',
+            advisor_phone: detail.mentor_phone_num || detail.advisor_phone || '',
+            content: detail.reason || detail.content || '',
+            materials: detail.materials || [],
+            created_at: detail.created_at || '',
+            deadline: detail.deadline || '',
+            status: detail.state ?? 0,
+            status_desc: statusMap[detail.state ?? 0] || '未知状态',
+            type: detail.type || 1
+          },
+          borrowTime: parseDate(detail.start_time),
+          returnTime: parseDate(detail.deadline),
+          materialsList,
+          loading: false
         });
+      },
+      fail: () => {
+        wx.showToast({ title: '请求失败', icon: 'none' });
         this.setData({ loading: false });
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1500);
       }
     });
   },
 
-  // 解析日期字符串 - 保留作为实例方法，调用独立函数
-  parseDate: function(dateString) {
-    return parseDate(dateString);
+  onInput(e) {
+    this.setData({ replyReason: e.detail.value });
   },
 
-  // 输入框聚焦
-  onLinkFocused: function() {
-    this.setData({ isLinkFocused: true });
-  },
-
-  // 输入框失焦
-  onLinkBlur: function() {
-    this.setData({ isLinkFocused: false });
-  },
-
-  // 输入处理
-  onInput: function(e) {
-    const field = e.currentTarget.dataset.field;
-    const value = e.detail.value;
-    if (field === 'replyReason') {
-      this.setData({
-        replyReason: value
-      });
-    }
-  },
-
-  // 提交审核结果
-  onSubmit: function(e) {
-    const action = e.currentTarget.dataset.action;
-    const { applyDetail, replyReason, borrowId } = this.data;
-    
-    // 如果是拒绝操作，检查是否填写了理由
-    if (action === 'reject' && !replyReason.trim()) {
-      wx.showToast({
-        title: '请填写拒绝理由',
-        icon: 'error'
-      });
+  onSubmit(e) {
+    const action = e.currentTarget.dataset.action || '通过';
+    const isApprove = action === 'approve' || action.indexOf('通过') !== -1;
+    const isReject = action === 'reject' || action.indexOf('打回') !== -1;
+  
+    if (isReject && !this.data.replyReason.trim()) {
+      wx.showToast({ title: '请输入打回理由', icon: 'none' });
       return;
     }
-
+  
     wx.showModal({
       title: '确认操作',
-      content: action === 'approve' ? '确认通过此申请？' : '确认拒绝此申请？',
-      success: (res) => {
+      content: isApprove ? '确认通过此申请？物资余量将自动减少。' : '确认打回此申请？',
+      success: res => {
         if (res.confirm) {
-          this.submitReviewResult(action, replyReason);
+          this.submitReview(isApprove);
         }
       }
     });
   },
+  
 
-  // 提交审核结果到后端
-  submitReviewResult: function(action, reason) {
+  submitReview(isApprove) {
     const token = wx.getStorageSync(TOKEN_KEY);
     if (!token) {
-      wx.showToast({
-        title: '请先登录',
-        icon: 'error'
-      });
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
-    const requestUrl = API_BASE + '/borrow/applies/' + this.data.borrowId + '/review';
-    const requestData = {
-      action: action, // 'approve' 或 'reject'
-      reason: reason || ''
+    const submitData = {
+      borrow_id: this.data.borrowId,
+      action: isApprove ? 'approve' : 'reject',
+      reason: isApprove ? '' : this.data.replyReason
     };
 
-    wx.showLoading({
-      title: '提交中...'
-    });
+    wx.showLoading({ title: '处理中...' });
 
     wx.request({
-      url: requestUrl,
+      url: `${API_BASE}/stuff-borrow/review`,
       method: 'POST',
+      data: submitData,
       header: {
-        'Authorization': 'Bearer ' + token,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      data: requestData,
-      success: (res) => {
-        wx.hideLoading();
-        console.log('审核提交结果:', res);
-        
-        if (res.statusCode === 200) {
-          wx.showToast({
-            title: action === 'approve' ? '审核通过' : '已拒绝',
-            icon: 'success'
-          });
-          
-          // 更新页面状态
-          setTimeout(() => {
-            this.fetchApplyDetail(this.data.borrowId); // 重新获取数据
-          }, 1000);
+      success: res => {
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          if (isApprove) {
+            this.updateStuffQuantity();
+          } else {
+            wx.hideLoading();
+            wx.showToast({
+              title: '已打回',
+              icon: 'success'
+            });
+            setTimeout(() => wx.navigateBack(), 1500);
+          }
         } else {
+          wx.hideLoading();
           wx.showToast({
             title: res.data?.message || '操作失败',
-            icon: 'error'
+            icon: 'none'
           });
         }
       },
-      fail: (err) => {
+      fail: err => {
         wx.hideLoading();
-        console.error('审核提交失败:', err);
-        wx.showToast({
-          title: '网络错误',
-          icon: 'error'
-        });
+        wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
   },
-
-  // 返回按钮处理
-  handlerGobackClick: function() {
+  handlerGobackClick() {
     wx.navigateBack();
   },
-
-  // 首页按钮处理
-  handlerGohomeClick: function() {
+  
+  handlerGohomeClick() {
     wx.reLaunch({
-      url: '/pages/index/index'
+      url: '/pages/index/index'  // 替换成你的首页路径
     });
   },
+  
+  updateStuffQuantity() {
+    const token = wx.getStorageSync(TOKEN_KEY);
+    wx.request({
+      url: `${API_BASE}/stuff-borrow/auto-update-quantity/${this.data.borrowId}`,
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      success: res => {
+        wx.hideLoading();
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          const updateData = res.data.data;
+          let successMessage = '审核通过';
+          if (updateData.successful_updates > 0) {
+            successMessage += `，已更新${updateData.successful_updates}个物资的余量`;
+          }
+          if (updateData.failed_count > 0) {
+            successMessage += `，${updateData.failed_count}个物资更新失败`;
+          }
 
-  // 页面分享
-  onShareAppMessage: function() {
-    return {
-      title: '借物申请详情',
-      path: '/pages/team_stuff_borrow_permit/team_stuff_borrow_permit?borrow_id=' + this.data.borrowId
-    };
+          wx.showToast({
+            title: successMessage,
+            icon: updateData.failed_count > 0 ? 'none' : 'success',
+            duration: 2000
+          });
+
+          if (updateData.updated_stuff && updateData.updated_stuff.length > 0) {
+            setTimeout(() => {
+              let detailMessage = '物资余量更新详情:\n';
+              updateData.updated_stuff.forEach(item => {
+                detailMessage += `${item.stuff_name}: ${item.old_remain} → ${item.new_remain}\n`;
+              });
+              wx.showModal({
+                title: '更新详情',
+                content: detailMessage,
+                showCancel: false,
+                success: () => {
+                  wx.navigateBack();
+                }
+              });
+            }, 2000);
+          } else {
+            setTimeout(() => wx.navigateBack(), 2000);
+          }
+
+        } else {
+          wx.showModal({
+            title: '提示',
+            content: '审核通过，但物资余量更新失败。请手动检查物资库存。',
+            showCancel: false,
+            success: () => {
+              wx.navigateBack();
+            }
+          });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        wx.showModal({
+          title: '提示',
+          content: '审核通过，但物资余量更新失败。请手动检查物资库存。',
+          showCancel: false,
+          success: () => {
+            wx.navigateBack();
+          }
+        });
+      }
+    });
   }
 });
