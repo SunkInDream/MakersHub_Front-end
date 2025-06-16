@@ -1,6 +1,7 @@
 // pages/my_xiumi_list/my_xiumi_link.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
+const DEBUG = true;
 // 引入外部utils工具
 const utils = require("../../utils/util")
 
@@ -18,33 +19,10 @@ Page({
       2: "#00adb5"    // 已通过
     },
     list: [],         // 全部申请
-    unreviewedList: [
-      {
-        "link_id": "PL1749790054000",
-        "title": "全国大学生物联网设计竞赛经验分享会",
-        "create_time": "2024-02-13T10:00:00Z",
-        "link": "http://example.com",
-        "state": 0
-      }
-    ], // 待审核 (state=0)
-    rejectedList: [
-      {
-        "link_id": "PL1749790056000",
-        "title": "作弊经验分享会",
-        "create_time": "2024-02-13T10:00:00Z",
-        "link": "http://example.com",
-        "state": 1
-      }
-    ],  // 已打回 (state=1)
-    approvedList: [
-      {
-        "link_id": "PL1749790054000",
-        "title": "全国大学生物联网设计竞赛经验分享会",
-        "create_time": "2024-02-13T10:00:00Z",
-        "link": "http://example.com",
-        "state": 2
-      }
-    ], // 已通过 (state=2)
+    unreviewedList: [], // 待审核 (state=0)
+    rejectedList: [],  // 已打回 (state=1)
+    approvedList: [], // 已通过 (state=2)
+    // DEBUG = TRUE加载的数据
     mockData: {
       code: 200,
       message: "successfully get application list",
@@ -54,6 +32,7 @@ Page({
           {
             "link_id": "PL1749790054000",
             "title": "全国大学生物联网设计竞赛经验分享会",
+            "name": "张贤",
             "create_time": "2024-02-13T10:00:00Z",
             "link": "http://example.com",
             "state": 0
@@ -61,22 +40,35 @@ Page({
           {
             "link_id": "PL1749790056000",
             "title": "作弊经验分享会",
+            "name": "王远航",
             "create_time": "2024-02-13T10:00:00Z",
             "link": "http://example.com",
             "state": 1
+          },
+          {
+            "link_id": "PL1749790058000",
+            "title": "后端开发经验分享会",
+            "name": "许景源",
+            "create_time": "2024-02-13T10:00:00Z",
+            "link": "http://example.com",
+            "state": 2
           }
         ]
       }
     }
-    
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
-
+    if (DEBUG) {
+      this.loadMockData();
+    } else {
+      this.fetchMyLinks();
+    }
   },
+
   // 切换 tab
   changeItem(e) {
     const index = parseInt(e.currentTarget.dataset.item);
@@ -84,6 +76,66 @@ Page({
   },
   onSwiperChange(e) {
     this.setData({ tab: e.detail.current });
+  },
+
+  // 拉取秀米链接列表
+  // 真正从后端拉数据的方法
+  fetchMyLinks() {
+    wx.request({
+      url: `${API_BASE}/publicity-link/view-my`,
+      method: 'GET',
+      header: { Authorization: `Bearer ${token}` },
+      success: res => {
+        if (res.data.code === 200) {
+          this.processList(res.data.data.list);
+        } else {
+          wx.showToast({ title: '获取失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: '网络错误', icon: 'none' });
+      }
+    });
+  },
+
+    // 使用本地 mockData 调试的方法
+    loadMockData() {
+      const res = this.data.mockData;
+      if (res.code === 200) {
+        this.processList(res.data.list);
+      } else {
+        wx.showToast({ title: 'Mock 数据错误', icon: 'none' });
+      }
+    },
+
+  // 统一处理列表：格式化时间 + 按 state 分组
+  processList(list) {
+    const all = list.map(item => ({
+      ...item,
+      formatted_time: utils.formatDateTime(new Date(item.create_time))
+    }));
+    this.setData({
+      unreviewedList: all.filter(x => x.state === 0),
+      rejectedList:   all.filter(x => x.state === 1),
+      approvedList:   all.filter(x => x.state === 2)
+    });
+  },
+
+
+  // 点击“修改”，跳转到编辑页
+  navigateToDetail(e) {
+    const { linkId, title, name, link } = e.currentTarget.dataset;
+    console.log("pass to next: ", { linkId, title, name, link });
+    wx.navigateTo({
+      url: `/pages/xiumi_submit/xiumi_submit?link_id=${linkId}&title=${encodeURIComponent(title)}&name=${encodeURIComponent(name)}&link=${encodeURIComponent(link)}`
+    });
+  },
+
+  // 点击“+”，跳转到新增页
+  navigateToSubmit() {
+    wx.navigateTo({
+      url: `/pages/xiumi_submit/xiumi_submit`
+    });
   },
   /**
    * 生命周期函数--监听页面初次渲染完成
