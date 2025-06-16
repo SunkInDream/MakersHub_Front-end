@@ -35,7 +35,8 @@ Page({
             "name": "张贤",
             "create_time": "2024-02-13T10:00:00Z",
             "link": "http://example.com",
-            "state": 0
+            "state": 0,
+            "review": ''
           },
           {
             "link_id": "PL1749790056000",
@@ -43,7 +44,8 @@ Page({
             "name": "王远航",
             "create_time": "2024-02-13T10:00:00Z",
             "link": "http://example.com",
-            "state": 1
+            "state": 1,
+            "review": '谁允许你这么起名的，出去'
           },
           {
             "link_id": "PL1749790058000",
@@ -51,7 +53,8 @@ Page({
             "name": "许景源",
             "create_time": "2024-02-13T10:00:00Z",
             "link": "http://example.com",
-            "state": 2
+            "state": 2,
+            "review": ''
           }
         ]
       }
@@ -98,15 +101,15 @@ Page({
     });
   },
 
-    // 使用本地 mockData 调试的方法
-    loadMockData() {
-      const res = this.data.mockData;
-      if (res.code === 200) {
-        this.processList(res.data.list);
-      } else {
-        wx.showToast({ title: 'Mock 数据错误', icon: 'none' });
-      }
-    },
+  // 使用本地 mockData 调试的方法
+  loadMockData() {
+    const res = this.data.mockData;
+    if (res.code === 200) {
+      this.processList(res.data.list);
+    } else {
+      wx.showToast({ title: 'Mock 数据错误', icon: 'none' });
+    }
+  },
 
   // 统一处理列表：格式化时间 + 按 state 分组
   processList(list) {
@@ -137,6 +140,19 @@ Page({
       url: `/pages/xiumi_submit/xiumi_submit`
     });
   },
+
+  // 返回处理
+  handlerGobackClick() {
+    wx.navigateBack();
+  },
+
+  // 回到首页
+  handlerGohomeClick() {
+    wx.reLaunch({
+      url: '/pages/index/index'
+    });
+  },
+
   /**
    * 生命周期函数--监听页面初次渲染完成
    */

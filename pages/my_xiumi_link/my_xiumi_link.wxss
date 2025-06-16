@@ -123,6 +123,22 @@ swiper-item {
 .title {
   width: 70%;
   font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.content {
+  font-size: 28rpx;
+}
+
+.link {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10rpx;
+}
+
+.copy-icon {
+  width: 30rpx;
 }
 
 .state {
@@ -132,6 +148,33 @@ swiper-item {
   font-size: 24rpx;
   padding: 4rpx 12rpx;
   border-radius: 24rpx;
+}
+
+.feedback-container {
+  margin-top: 25rpx;
+  background-color: rgba(227, 60, 100, 0.1); /* #E33C64 变浅 */
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  margin-left: 25rpx;
+  margin-right: 25rpx;
+  text-align: center;
+  width: 100%;
+  align-self: center;
+}
+
+.feedback-title {
+  font-size: 30rpx;
+  color: #E33C64;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.feedback-content {
+  font-size: 28rpx;
+  color: #E33C64;
+  line-height: 1.6;
+  word-wrap: break-word;
 }
 
 .detail-btn {
