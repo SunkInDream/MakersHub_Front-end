@@ -94,18 +94,45 @@ Page({
 
   // 加载数据（使用模拟数据或实际API）
   loadData() {
-    try {
-      // 模拟API调用
-      const response = this.data.mockData;
-      if (response && response.data && response.data.list) {
-        this.filterData(response.data.list);
-      } else {
-        wx.showToast({ title: '数据加载失败', icon: 'error' });
+    // try {
+    //   // 模拟API调用
+    //   const response = this.data.mockData;
+    //   if (response && response.data && response.data.list) {
+    //     this.filterData(response.data.list);
+    //   } else {
+    //     wx.showToast({ title: '数据加载失败', icon: 'error' });
+    //   }
+    // } catch (err) {
+    //   console.error('加载数据错误:', err);
+    //   wx.showToast({ title: '数据加载失败', icon: 'error' });
+    // }
+    const that = this;
+    wx.showLoading({ title: '加载中...' });
+    wx.request({
+      url: `${API_BASE}/sites-borrow/view`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success(res) {
+        wx.hideLoading();
+        console.log("apiData", JSON.stringify(res.data.data, null, 2));
+        if (res.data && res.data.code === 200 && res.data.data && Array.isArray(res.data.data.list)) {
+          that.filterData(res.data.data.list);
+        } else {
+          wx.showToast({
+            title: res.data.message || '数据加载失败',
+            icon: 'error'
+          });
+          console.error('后端返回异常：', res);
+        }
+      },
+      fail(err) {
+        wx.hideLoading();
+        wx.showToast({ title: '网络请求失败', icon: 'error' });
+        console.error('wx.request 调用失败：', err);
       }
-    } catch (err) {
-      console.error('加载数据错误:', err);
-      wx.showToast({ title: '数据加载失败', icon: 'error' });
-    }
+    });
   },
   // 切换 tab
   changeItem(e) {
@@ -139,6 +166,7 @@ Page({
   navigateToDetail(e) {
     const applyId = e.currentTarget.dataset.applyId;
     const state = e.currentTarget.dataset.state;
+    console.log("applyId:", applyId); 
     wx.navigateTo({
       url: `/pages/my_site_borrow_detail/my_site_borrow_detail?apply_id=${applyId}&state=${state}`
     });

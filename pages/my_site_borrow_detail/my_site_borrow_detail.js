@@ -80,7 +80,7 @@ Page({
       }, 500);
     } else {
       wx.request({
-        url: `${API_BASE}/site-borrow/detail/${apply_id}`,
+        url: `${API_BASE}/sites-borrow/detail/${apply_id}`,
         method: 'GET',
         header: {
           'content-type': 'application/json',
