@@ -179,7 +179,57 @@ Page({
       this.sortCurrentList(targetList);
     });
   },
+  returnStuff(){
+    const token = wx.getStorageSync(TOKEN_KEY);
+    if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
 
+    wx.showModal({
+      title: '确认归还',
+      content: '确认物资已归还？',
+      success: res => {
+        if (res.confirm) {
+          wx.showLoading({ title: '处理中...' });
+          
+          wx.request({
+            url: `${API_BASE}/stuff-borrow/return`,
+            method: 'POST',
+            data: {
+              borrow_id: this.data.borrowId,
+              return_notes: '物资已完好归还'  // 可选的归还备注
+            },
+            header: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            success: res => {
+              wx.hideLoading();
+              if (res.statusCode === 200) {
+                wx.showToast({
+                  title: '归还确认成功',
+                  icon: 'success'
+                });
+                setTimeout(() => {
+                  this.loadDetail(); // 重新加载详情以更新状态
+                }, 1500);
+              } else {
+                wx.showToast({
+                  title: res.data?.message || '操作失败',
+                  icon: 'none'
+                });
+              }
+            },
+            fail: err => {
+              wx.hideLoading();
+              wx.showToast({ title: '网络错误', icon: 'none' });
+            }
+          });
+        }
+      }
+    });
+  },
   handlerGobackClick() {
     wx.showModal({
       title: '你点击了返回',

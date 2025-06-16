@@ -121,12 +121,18 @@ swiper-item {
 .tag {
   display: inline-block;
   white-space: nowrap;
-  background-color: #ffeaa7;
+  background-color: #ffeaa7; /* 默认黄色 */
   color: #333;
   font-size: 22rpx;
   padding: 4rpx 12rpx;
   border-radius: 24rpx;
 }
+
+.tag-team {
+  background-color: #ff6b6b; /* 团队标签为红色背景 */
+  color: #fff;
+}
+
 
 .time-and-tag {
   display: flex;
