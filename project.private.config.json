@@ -24,6 +24,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/my_stuff_borrow_list/my_stuff_borrow_list",
+          "pathName": "pages/my_stuff_borrow_list/my_stuff_borrow_list",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "pages/xiumi_link_permit/xiumi_link_permit",
           "pathName": "pages/xiumi_link_permit/xiumi_link_permit",
           "query": "",

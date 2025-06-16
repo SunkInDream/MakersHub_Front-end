@@ -180,6 +180,181 @@ Page({
     });
   },
 
+  returnStuff(borrowId) {
+    console.log('[returnStuff] 开始处理归还请求');
+    console.log('[returnStuff] 接收到的 borrowId:', borrowId, '类型:', typeof borrowId);
+  
+    // 验证 borrowId
+    if (!borrowId || typeof borrowId !== 'string' || borrowId.trim() === '') {
+      wx.showToast({ title: '申请ID无效', icon: 'none' });
+      return;
+    }
+  
+    const validBorrowId = borrowId.trim();
+    console.log('[returnStuff] 验证通过的 borrowId:', validBorrowId);
+  
+    wx.showModal({
+      title: '确认归还',
+      content: `确认申请 ${validBorrowId} 的物资已归还？`,
+      success: res => {
+        if (res.confirm) {
+          // 获取 token
+          const token = wx.getStorageSync(TOKEN_KEY);
+          console.log('[returnStuff] 确认后获取的 token:', token, '类型:', typeof token);
+          
+          if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
+            wx.showToast({ title: '登录状态已失效，请重新登录', icon: 'none' });
+            return;
+          }
+  
+          // 发送请求
+          wx.showLoading({ title: '处理中...' });
+          
+          wx.request({
+            url: `${API_BASE}/stuff-borrow/return`,
+            method: 'POST',
+            data: {
+              borrow_id: validBorrowId,
+              return_notes: '物资已完好归还'
+            },
+            header: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            success: res => {
+              wx.hideLoading();
+              console.log('[returnStuff] 服务器响应:', res);
+  
+              if (res.statusCode === 200) {
+                wx.showToast({ title: '归还确认成功', icon: 'success' });
+                setTimeout(() => this.loadBorrowApplies(), 1500);
+              } else if (res.statusCode === 401) {
+                wx.showToast({ title: '登录状态已失效，请重新登录', icon: 'none' });
+              } else {
+                wx.showToast({ title: res.data?.message || '操作失败', icon: 'none' });
+              }
+            },
+            fail: err => {
+              wx.hideLoading();
+              console.error('[returnStuff] 请求失败:', err);
+              wx.showToast({ title: '网络错误', icon: 'none' });
+            }
+          });
+        }
+      }
+    });
+  },
+  // 独立的请求执行函数
+  performReturnRequest(borrowId, token) {
+    wx.showLoading({ title: '处理中...' });
+  
+    // 详细检查 token
+    console.log('[performReturnRequest] 原始 token:', token);
+    console.log('[performReturnRequest] token 类型:', typeof token);
+    console.log('[performReturnRequest] token 是否为空:', !token);
+    
+    if (!token || token === 'undefined' || token === 'null') {
+      wx.hideLoading();
+      wx.showToast({ title: 'Token 无效', icon: 'none' });
+      return;
+    }
+  
+    // 构造 Authorization 头部
+    const authHeader = `Bearer ${token}`;
+    console.log('[performReturnRequest] Authorization 头部:', authHeader);
+  
+    // 构造请求数据
+    const requestData = {
+      borrow_id: borrowId,
+      return_notes: '物资已完好归还'
+    };
+  
+    console.log('[performReturnRequest] 最终发送的数据:', requestData);
+    console.log('[performReturnRequest] 请求头部:', {
+      'Authorization': authHeader,
+      'Content-Type': 'application/json'
+    });
+  
+    wx.request({
+      url: `${API_BASE}/stuff-borrow/return`,
+      method: 'POST',
+      data: requestData,
+      header: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/json'
+      },
+      success: res => {
+        wx.hideLoading();
+        console.log('[performReturnRequest] 服务器响应:', res);
+  
+        if (res.statusCode === 200) {
+          wx.showToast({
+            title: '归还确认成功',
+            icon: 'success'
+          });
+          setTimeout(() => {
+            this.loadBorrowApplies();
+          }, 1500);
+        } else if (res.statusCode === 401) {
+          wx.showToast({
+            title: '登录状态已失效，请重新登录',
+            icon: 'none'
+          });
+          setTimeout(() => {
+            wx.reLaunch({ url: '/pages/login/login' });
+          }, 2000);
+        } else {
+          console.error('[performReturnRequest] 服务器返回错误:', res.data);
+          wx.showToast({
+            title: res.data?.message || '操作失败',
+            icon: 'none'
+          });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        console.error('[performReturnRequest] 请求失败:', err);
+        wx.showToast({ title: '网络错误', icon: 'none' });
+      }
+    });
+  },
+  // 重写的点击事件处理 - 使用索引方式
+  // 修改 onReturnClick 函数，针对审核通过列表
+  onReturnClick(e) {
+    console.log('[onReturnClick] 事件对象:', e);
+    
+    // 获取列表索引
+    const index = e.currentTarget.dataset.index;
+    console.log('[onReturnClick] 获取到的索引:', index);
+
+    if (index === undefined || index === null) {
+      wx.showToast({ title: '无法获取申请信息', icon: 'none' });
+      return;
+    }
+
+    // 因为归还按钮只在审核通过 tab 中，所以直接使用 approvedList
+    const targetList = this.data.approvedList;
+
+    if (!targetList || !targetList[index]) {
+      wx.showToast({ title: '申请数据不存在', icon: 'none' });
+      return;
+    }
+
+    const borrowItem = targetList[index];
+    const borrowId = borrowItem.event_id;
+
+    console.log('[onReturnClick] 从 approvedList 中获取的申请数据:', borrowItem);
+    console.log('[onReturnClick] 提取的 borrowId:', borrowId);
+
+    if (!borrowId || typeof borrowId !== 'string') {
+      console.error('[onReturnClick] borrowId 无效:', borrowId);
+      wx.showToast({ title: '申请ID无效', icon: 'none' });
+      return;
+    }
+
+    this.returnStuff(borrowId);
+  },
+
   handlerGobackClick() {
     wx.showModal({
       title: '你点击了返回',

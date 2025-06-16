@@ -1,59 +1,62 @@
-<!--pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail.wxml-->
-<!--pages/personal_site_borrow_detail/personal_site_borrow_detail.wxml-->
+<!--pages/my_site_borrow_detail/my_site_borrow_detail.wxml-->
 <view class="container">
   <!--导航栏-->
-  <navBar title='个人借物详情' background='#00adb5' color='#fff' back="{{true}}" home="{{true}}" iconTheme='white' bindback="handlerGobackClick" bindhome="handlerGohomeClick"></navBar>
+  <navBar title='场地借用详情' background='#00adb5' color='#fff' back="{{true}}" home="{{true}}" iconTheme='white' bindback="handlerGobackClick" bindhome="handlerGohomeClick"></navBar>
 
-  <!--导航栏下的个人借物详情-->
+  <!--导航栏下的场地借用详情-->
   <view class="detail-container">
-    <view class="box" style="background: {{statusColor}}">
-      <text class="boxtext">{{statusText}}</text>
+    <view class="box" style="background-color: {{stateColors[apiData.state]}};">
+      <text class="boxtext" style="color: {{stateText[apiData.state]}}">{{stateTag[apiData.state]}}</text>
     </view>
     <view class="section">
       <text class="sub-title">借物人信息</text>
       <view class="info">
-        姓名：{{apiData.borrowerInfo.name}}
+        姓名：{{apiData.name}}
       </view>
       <view class="info">
-        学号：{{apiData.borrowerInfo.student_id}}
+        学号：{{apiData.student_id}}
       </view>
       <view class="info">
-        专业：{{apiData.borrowerInfo.major}}
+        电话：{{apiData.phone_num}}
       </view>
       <view class="info">
-        电话：{{apiData.borrowerInfo.phone_num}}
-      </view>
-      <view class="info">
-        邮箱：{{apiData.borrowerInfo.email}}
-      </view>
-      <view class="info">
-        年级：{{apiData.borrowerInfo.grade}}
+        邮箱：{{apiData.email}}
       </view>
     </view>
 
-    <view class="section" wx:if="{{apiData.type === 1}}">
+    <view class="section">
+      <text class="sub-title">借用详情</text>
+      <view class="info">
+        场地用途：{{apiData.start_time}}
+      </view>
+      <view class="info">
+        借用场地：{{apiData.site}}  [工位 {{apiData.number}}]
+      </view>
+    </view>
+
+    <view class="section" >
       <text class="sub-title">项目信息</text>
-      <view class="info">项目编号：{{apiData.link}}
+      <view class="info">项目编号：{{apiData.project_id}}
         <image class="copy-icon" bindtap="copyLink" src="/images/activitydetail/copy.svg"></image>
       </view>
-      <view class="info">指导老师：</view>
-      <view class="info">联系方式：</view>
+      <view class="info">指导老师：{{apiData.mentor_name}}</view>
+      <view class="info">联系方式：{{apiData.mentor_phone_num}}</view>
     </view>
     
     <view class="section">
       <text class="sub-title">起借时间</text>
       <view class="info">
-        <text>{{apiData.description}}</text>
+        <text>{{apiData.start_time}}</text>
       </view>
     </view>
 
     <view class="section">
       <text class="sub-title">归还时间</text>
       <view class="info">
-        <text>{{apiData.description}}</text>
+        <text>{{apiData.end_time}}</text>
       </view>
     </view>
-
+    
     <!-- 已打回状态时显示审核反馈和操作按钮 -->
     <view wx:if="{{apiData.state === 1}}" class="rejected-section">
       <!-- 审核反馈信息 -->
@@ -61,13 +64,12 @@
         <view class="feedback-title">审核反馈</view>
         <view class="feedback-content">{{apiData.review || '暂无反馈信息'}}</view>
       </view>
-      
-      <!-- 操作按钮 -->
-      <view class="action-buttons">
-        <button class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</button>
-        <button class="action-btn modify-btn" bindtap="modifyApplication">修改申请</button>
-      </view>
     </view>
+    <!-- 操作按钮 -->
+    <view wx:if="{{apiData.state === 0 || apiData.state === 1}}" class="action-buttons" >
+        <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
+        <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
+      </view>
   </view>
   <image class="bottom-image" src="/images/activitydetail/cat_black.svg"></image>
 </view>

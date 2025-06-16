@@ -1,134 +1,148 @@
-// // pages/my_stuff_borrow_list/my_stuff_borrow_list.js
-// Page({
+// pages/my_site_borrow_list/my_site_borrow_list.js
+const API_BASE = "http://146.56.227.73:8000";
+const token = wx.getStorageSync('auth_token');
 
-//   /**
-//    * 页面的初始数据
-//    */
-//   data: {
+// 引入外部utils工具
+const utils = require("../../utils/util")
 
-//   },
-
-//   /**
-//    * 生命周期函数--监听页面加载
-//    */
-//   onLoad(options) {
-
-//   },
-
-//   /**
-//    * 生命周期函数--监听页面初次渲染完成
-//    */
-//   onReady() {
-
-//   },
-
-//   /**
-//    * 生命周期函数--监听页面显示
-//    */
-//   onShow() {
-
-//   },
-
-//   /**
-//    * 生命周期函数--监听页面隐藏
-//    */
-//   onHide() {
-
-//   },
-
-//   /**
-//    * 生命周期函数--监听页面卸载
-//    */
-//   onUnload() {
-
-//   },
-
-//   /**
-//    * 页面相关事件处理函数--监听用户下拉动作
-//    */
-//   onPullDownRefresh() {
-
-//   },
-
-//   /**
-//    * 页面上拉触底事件的处理函数
-//    */
-//   onReachBottom() {
-
-//   },
-
-//   /**
-//    * 用户点击右上角分享
-//    */
-//   onShareAppMessage() {
-
-//   }
-// })
-
-// pages/FieldApply/FieldApply.js
 Page({
   data: {
     tab: 0, // 当前 tab 页索引
     sortText: '默认',
     currentSort: 'default',
     isFolded: true,
-
-    unreviewedList: [
-      {
-        event_id: 1,
-        event_name: '三架',
-        start_str: '申请时间',
-        start_time: '2025-05-20',
-        type: '个人',
-        poster: '/images/object_borrow_list/1.png'
-      },
-      {
-        event_id: 2,
-        event_name: '音响',
-        start_str: '申请时间',
-        start_time: '2025-05-18',
-        type: '个人',
-        poster: '/images/object_borrow_list/1.png'
+    stateTag: ["待审核", "已打回", "借用中", "已归还"],
+    stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF'],
+    stateColors: {
+      0: "#666",      // 待审核
+      1: "#E33C64",   // 已打回
+      2: "#ffeaa7",   // 借用中
+      3: "#00adb5"    // 已归还
+    },
+    list: [],         // 全部申请
+    borrowingList: [], // 借用中 (state=2)
+    returnedList: [],  // 已归还 (state=3)
+    unpermittedList: [], // 在约 (state=0 or state=1)
+    mockData: {
+      code: 200,
+      message: "successfully get application list",
+      data: {
+        total: 4,
+        list: [
+          {
+            apply_id: "LB1749636004000",
+            state: 2,
+            created_time: "2024-01-14T10:10:10Z",
+            site: "二基楼B101",
+            number: 1
+          },
+          {
+            apply_id: "LB1749636006000",
+            state: 0,
+            created_time: "2024-02-14T10:10:12Z",
+            site: "二基楼B208+",
+            number: 2
+          },
+          {
+            apply_id: "LB1749636007000",
+            state: 3,
+            created_time: "2024-03-14T10:10:12Z",
+            site: "二基楼B102",
+            number: 3
+          },
+          {
+            apply_id: "LB1749636008000",
+            state: 1,
+            created_time: "2024-04-14T10:10:12Z",
+            site: "二基楼B209",
+            number: 1
+          }
+        ]
       }
-    ],
-    approvedList: [
-      {
-        event_id: 3,
-        event_name: '教室A',
-        start_time: '2025-05-15',
-        type: '部门',
-        poster: '/images/object_borrow_list/1.png'
-      }
-    ],
-    returnedList: [
-      {
-        event_id: 4,
-        event_name: '摄影设备',
-        start_time: '2025-05-12',
-        type: '借用归还',
-        poster: '/images/object_borrow_list/1.png'
-      }
-    ]
+    }
   },
-
-  // 初始化不需要 currentList
+// 初始化时加载数据
   onLoad() {
-    // 可以预排序每个列表（可选）
-    this.sortCurrentList('unreviewedList');
-    this.sortCurrentList('approvedList');
-    this.sortCurrentList('returnedList');
+    this.loadData();
   },
 
+// 过滤数据到不同分类
+  filterData(dataList) {
+    // 处理时间格式
+    const formattedDataList = dataList.map(item => {
+      return {
+        ...item,
+        formatted_time: utils.formatDateTime(item.created_time)
+      };
+    });
+
+    const borrowingList = formattedDataList.filter(item => item.state === 2);
+    const returnedList = formattedDataList.filter(item => item.state === 3);
+    const unpermittedList = formattedDataList.filter(item => item.state === 0 || item.state === 1);
+
+    this.setData({
+      list: formattedDataList,
+      borrowingList,
+      returnedList,
+      unpermittedList
+    });
+    console.log("list: ", this.data.list);
+    console.log("borrowingList: ", this.data.borrowingList);
+    console.log("returnedList: ", this.data.returnedList);
+    console.log("unpermittedList: ", this.data.unpermittedList);
+  },
+
+  // 加载数据（使用模拟数据或实际API）
+  loadData() {
+    // try {
+    //   // 模拟API调用
+    //   const response = this.data.mockData;
+    //   if (response && response.data && response.data.list) {
+    //     this.filterData(response.data.list);
+    //   } else {
+    //     wx.showToast({ title: '数据加载失败', icon: 'error' });
+    //   }
+    // } catch (err) {
+    //   console.error('加载数据错误:', err);
+    //   wx.showToast({ title: '数据加载失败', icon: 'error' });
+    // }
+    const that = this;
+    wx.showLoading({ title: '加载中...' });
+    wx.request({
+      url: `${API_BASE}/stuff-borrow/view`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`
+      },
+      success(res) {
+        wx.hideLoading();
+        console.log("apiData", JSON.stringify(res.data.data, null, 2));
+        if (res.data && res.data.code === 200 && res.data.data && Array.isArray(res.data.data.records)) {
+          // 将 records 字段适配为期望的格式
+          that.filterData(res.data.data.records);
+        } else {
+          wx.showToast({
+            title: res.data.message || '数据加载失败',
+            icon: 'error'
+          });
+          console.error('后端返回异常：', res);
+        }
+      },
+      fail(err) {
+        wx.hideLoading();
+        wx.showToast({ title: '网络请求失败', icon: 'error' });
+        console.error('wx.request 调用失败：', err);
+      }
+    });
+  },
   // 切换 tab
   changeItem(e) {
     const index = parseInt(e.currentTarget.dataset.item);
     this.setData({ tab: index });
   },
-
   onSwiperChange(e) {
     this.setData({ tab: e.detail.current });
   },
-
   handlerGobackClick() {
     wx.showModal({
       title: '你点击了返回',
@@ -139,57 +153,23 @@ Page({
           if (pages.length >= 2) {
             wx.navigateBack({ delta: 1 });
           } else {
-            wx.reLaunch({ url: '/pages/index/index' });
+            wx.reLaunch({ url: '/pages/me/me' });
           }
         }
       }
     });
   },
-
   handlerGohomeClick() {
     wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  toggleSortDropdown() {
-    this.setData({ isFolded: !this.data.isFolded });
-  },
-
-  // 修改排序方式
-  selectSort(e) {
-    const value = e.currentTarget.dataset.value;
-    const targetList = ['unreviewedList', 'approvedList', 'returnedList'][this.data.tab];
-    this.setData({
-      currentSort: value,
-      sortText: value === 'default' ? '默认' : value === 'asc' ? '正序' : '逆序',
-      isFolded: true
-    }, () => this.sortCurrentList(targetList));
-  },
-
-  // 具体排序逻辑
-  sortCurrentList(targetListName) {
-    if (this.data.currentSort === 'default') return;
-
-    const list = this.data[targetListName];
-    const sorted = [...list].sort((a, b) =>
-      this.data.currentSort === 'asc'
-        ? a.start_time.localeCompare(b.start_time)
-        : b.start_time.localeCompare(a.start_time)
-    );
-
-    this.setData({ [targetListName]: sorted });
-  },
-
-  // 添加记录
-  addRecordToList(newRecord, targetListName = 'unreviewedList') {
-    const oldList = this.data[targetListName];
-    const updatedList = [...oldList, newRecord];
-    this.setData({ [targetListName]: updatedList });
-  },
-
   // 跳转到详情页
   navigateToDetail(e) {
+    const applyId = e.currentTarget.dataset.applyId;
+    const state = e.currentTarget.dataset.state;
+    console.log("applyId:", applyId); 
     wx.navigateTo({
-      url: `/pages/site_borrow_permit/site_borrow_permit?event_id=${e.currentTarget.dataset.eventId}`
+      url: `/pages/my_stuff_borrow_detail/my_stuff_borrow_detail?apply_id=${applyId}&state=${state}`
     });
   }
 });
