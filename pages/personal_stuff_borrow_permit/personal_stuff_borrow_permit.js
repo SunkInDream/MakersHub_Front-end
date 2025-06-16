@@ -97,7 +97,7 @@ Page({
       0: '未审核',
       1: '已通过',
       2: '已打回',
-      3: '已归还'
+      3: '已借出'
     };
     
     if (detail.start_time) {
@@ -124,7 +124,8 @@ Page({
     if (Array.isArray(detail.stuff_list)) {
       materialsList = detail.stuff_list.map((item, index) => ({
         id: index,
-        text: item.stuff || '未知物资'
+        text: item.stuff || '未知物资',
+        quantity: item.quantity || 1
       }));
       console.log('[processApplyDetail] 使用 stuff_list 构造物资列表:', materialsList);
     }
@@ -132,14 +133,15 @@ Page({
     else if (Array.isArray(detail.materials)) {
       materialsList = detail.materials.map((m, i) => ({
         id: i,
-        text: typeof m === 'string' ? m : JSON.stringify(m)
+        text: typeof m === 'string' ? m : JSON.stringify(m),
+        quantity: 1
       }));
       console.log('[processApplyDetail] 使用 materials 构造物资列表:', materialsList);
     }
 
     this.setData({
       applyDetail: {
-        borrow_id: detail.borrow_id || '',
+        borrow_id: detail.sb_id || detail.borrow_id || '',
         name: detail.name || '',
         student_id: detail.student_id || '',
         phone_num: detail.phone_num || '',
@@ -153,7 +155,7 @@ Page({
         materials: detail.materials || [],
         created_at: detail.created_at || '',
         deadline: detail.deadline || '',
-        status: detail.status || 0,
+        status: detail.state || 0,
         status_desc: statusDescMap[detail.state] || '未知状态',
         type: detail.type || 0
       },
@@ -198,7 +200,7 @@ Page({
 
     wx.showModal({
       title: '确认操作',
-      content: isApprove ? '确认通过此申请？' : '确认打回此申请？',
+      content: isApprove ? '确认通过此申请？物资余量将自动减少。' : '确认打回此申请？',
       success: res => {
         if (res.confirm) {
           console.log('[onSubmit] 用户确认操作');
@@ -234,15 +236,22 @@ Page({
         'Content-Type': 'application/json'
       },
       success: res => {
-        wx.hideLoading();
         console.log('[submitReview] 审核响应:', res);
         if (res.statusCode === 200 || res.statusCode === 201) {
-          wx.showToast({
-            title: isApprove ? '审核通过' : '已打回',
-            icon: 'success'
-          });
-          setTimeout(() => wx.navigateBack(), 1500);
+          if (isApprove) {
+            // 如果是审核通过，自动更新物资余量
+            console.log('[submitReview] 审核通过，开始更新物资余量');
+            this.updateStuffQuantity();
+          } else {
+            wx.hideLoading();
+            wx.showToast({
+              title: '已打回',
+              icon: 'success'
+            });
+            setTimeout(() => wx.navigateBack(), 1500);
+          }
         } else {
+          wx.hideLoading();
           wx.showToast({
             title: res.data?.message || '操作失败',
             icon: 'none'
@@ -253,6 +262,89 @@ Page({
         wx.hideLoading();
         console.error('[submitReview] 请求失败:', err);
         wx.showToast({ title: '网络错误', icon: 'none' });
+      }
+    });
+  },
+
+  updateStuffQuantity() {
+    const token = wx.getStorageSync(TOKEN_KEY);
+    console.log('[updateStuffQuantity] 开始更新物资余量');
+
+    wx.request({
+      url: `${API_BASE}/stuff-borrow/auto-update-quantity/${this.data.borrowId}`,
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      success: res => {
+        wx.hideLoading();
+        console.log('[updateStuffQuantity] 更新物资余量响应:', res);
+        
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          const updateData = res.data.data;
+          console.log('[updateStuffQuantity] 更新结果:', updateData);
+          
+          let successMessage = '审核通过';
+          if (updateData.successful_updates > 0) {
+            successMessage += `，已更新${updateData.successful_updates}个物资的余量`;
+          }
+          
+          if (updateData.failed_count > 0) {
+            successMessage += `，${updateData.failed_count}个物资更新失败`;
+            console.warn('[updateStuffQuantity] 部分物资更新失败:', updateData.failed_updates);
+          }
+          
+          wx.showToast({
+            title: successMessage,
+            icon: updateData.failed_count > 0 ? 'none' : 'success',
+            duration: 2000
+          });
+          
+          // 显示详细更新信息
+          if (updateData.updated_stuff && updateData.updated_stuff.length > 0) {
+            setTimeout(() => {
+              let detailMessage = '物资余量更新详情:\n';
+              updateData.updated_stuff.forEach(item => {
+                detailMessage += `${item.stuff_name}: ${item.old_remain} → ${item.new_remain}\n`;
+              });
+              
+              wx.showModal({
+                title: '更新详情',
+                content: detailMessage,
+                showCancel: false,
+                success: () => {
+                  wx.navigateBack();
+                }
+              });
+            }, 2000);
+          } else {
+            setTimeout(() => wx.navigateBack(), 2000);
+          }
+          
+        } else {
+          console.error('[updateStuffQuantity] 更新物资余量失败:', res.data);
+          wx.showModal({
+            title: '提示',
+            content: '审核通过，但物资余量更新失败。请手动检查物资库存。',
+            showCancel: false,
+            success: () => {
+              wx.navigateBack();
+            }
+          });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        console.error('[updateStuffQuantity] 更新物资余量请求失败:', err);
+        wx.showModal({
+          title: '提示',
+          content: '审核通过，但物资余量更新失败。请手动检查物资库存。',
+          showCancel: false,
+          success: () => {
+            wx.navigateBack();
+          }
+        });
       }
     });
   },
