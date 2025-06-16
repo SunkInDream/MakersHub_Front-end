@@ -32,7 +32,8 @@
     "pages/duty_arrange/duty_arrange",
     "pages/site_borrow_apply/site_borrow_apply",
     "pages/my_site_borrow_list/my_site_borrow_list",
-    "pages/my_xiumi_list/my_xiumi_link"
+    "pages/my_xiumi_link/my_xiumi_link",
+    "pages/xiumi_link_permit/xiumi_link_permit"
   ],
   "window": {
     "backgroundTextStyle": "light",

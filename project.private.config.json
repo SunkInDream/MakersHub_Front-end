@@ -24,15 +24,29 @@
     "miniprogram": {
       "list": [
         {
-          "name": "pages/xiumi_submit/xiumi_submit",
-          "pathName": "pages/xiumi_submit/xiumi_submit",
+          "name": "pages/xiumi_link_permit/xiumi_link_permit",
+          "pathName": "pages/xiumi_link_permit/xiumi_link_permit",
           "query": "",
           "launchMode": "default",
           "scene": null
         },
         {
-          "name": "pages/my_xiumi_list/my_xiumi_link",
-          "pathName": "pages/my_xiumi_list/my_xiumi_link",
+          "name": "pages/my_xiumi_link/my_xiumi_link",
+          "pathName": "pages/my_xiumi_link/my_xiumi_link",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/publicity_work_page/publicity_work_page",
+          "pathName": "pages/publicity_work_page/publicity_work_page",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/xiumi_submit/xiumi_submit",
+          "pathName": "pages/xiumi_submit/xiumi_submit",
           "query": "",
           "launchMode": "default",
           "scene": null
@@ -243,20 +257,6 @@
         {
           "name": "pages/index/index",
           "pathName": "pages/index/index",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/object_borrow_list/object_borrow_list",
-          "pathName": "pages/object_borrow_list/object_borrow_list",
-          "query": "",
-          "launchMode": "default",
-          "scene": null
-        },
-        {
-          "name": "pages/object_borrow/object_borrow",
-          "pathName": "pages/object_borrow/object_borrow",
           "query": "",
           "launchMode": "default",
           "scene": null
