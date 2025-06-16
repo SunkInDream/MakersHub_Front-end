@@ -32,14 +32,14 @@ page {
   height: 140rpx;
 }
 
-/* 各容器背景色 */
-.btn1,
-.btn3 {
-  background-color: #EEEEEE;
+/* 单数（奇数）容器使用 #00adb5 背景色 */
+.button-container:nth-of-type(odd) {
+  background-color: #00adb5;
 }
-.btn2,
-.btn4 {
-  background-color: #00ADB5;
+
+/* 双数（偶数）容器使用 #e5e5e5 背景色 */
+.button-container:nth-of-type(even) {
+  background-color: #e5e5e5;
 }
 
 /* 左侧图片容器及图片样式 */
@@ -57,27 +57,20 @@ page {
 /* 中间文字容器基础样式 */
 .text-container {
   flex: 1;
-  font-size: 34.88rpx;
+  font-size: 35rpx;
   line-height: 40rpx;
-  
+  margin-left: 25rpx;
+  font-weight: 600;
 }
 
-/* 文字颜色及左边距 */
-.text1 {
-  color: #000000;
-  margin-left: 25rpx;
-}
-.text2 {
+/* 奇数 button-container 内的文字颜色 */
+.button-container:nth-of-type(odd) .text-container {
   color: #ffffff;
-  margin-left: 25rpx;
 }
-.text3 {
-  color: #000000;
-  margin-left: 25rpx;
-}
-.text4 {
-  color: #ffffff;
-  margin-left: 25rpx;
+
+/* 偶数 button-container 内的文字颜色 */
+.button-container:nth-of-type(even) .text-container {
+  color: #222831;
 }
 
 /* 右侧箭头图片容器及图片样式 */

@@ -1,51 +1,66 @@
 // index.js
+const API_BASE = "http://146.56.227.73:8000";
+const token = wx.getStorageSync('auth_token');
+
 Page({
   data: {
     level: 2 // 默认权限级别，需根据接口动态更新
   },
   
   onLoad() {
-    // 这里模拟从后端获取权限级别
-    this.fetchUserLevel()
+    this.fetchUserRole();
   },
 
-  handlerGobackClick() {
-    wx.showModal({
-      title: '你点击了返回',
-      content: '是否确认放回',
-      success: e => {
-        if (e.confirm) {
-          const pages = getCurrentPages();
-          if (pages.length >= 2) {
-            wx.navigateBack({
-              delta: 1
-            });
-          } else {
-            wx.reLaunch({
-              url: '/pages/index/index'
-            });
-          }
-        }
+  fetchUserRole() {
+    wx.request({
+      url: `${API_BASE}/users/profile`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${token}`,
+        'content-type': 'application/json'
+      },
+      success: (res) => {
+        this.setData({ level: res.data.data.role });
+      },
+      fail: () => {
+        wx.showToast({ title: '获取权限失败' });
       }
     });
   },
+
+  handlerGobackClick() {
+    const pages = getCurrentPages();
+    if (pages.length >= 2) {
+      wx.navigateBack({
+        delta: 1
+      });
+    } else {
+      wx.reLaunch({
+        url: '/pages/index/index'
+      });
+    }
+  },
+
   handlerGohomeClick() {
     wx.reLaunch({
       url: '/pages/index/index'
     });
   },
 
-    // 四个导航方法
-    navigate1() {
-      wx.navigateTo({ url: '/pages/schedule/schedule' }) // 学年工作安排
-    },
-    navigate2() {
+    // 导航方法
+    navigateToActivitySubmit() {
       wx.navigateTo({ url: '/pages/activity_submit/activity_submit' }) // 活动宣传发布
     },
-    navigate3() {
-      wx.navigateTo({ url: '/pages/xiumi/xiumi' }) // 秀米链接提交
+    navigateToSchedule() {
+      wx.navigateTo({ url: '/pages/schedule/schedule' }) // 学年工作安排
     },
-    navigate4() {
+    navigateToMyXiumiLink() {
+      wx.navigateTo({ url: '/pages/my_xiumi_link/my_xiumi_link' }) 
+    },
+    navigateToXiumiLinkPermit() {
+      wx.navigateTo({ url: '/pages/xiumi_link_permit/xiumi_link_permit' }) 
+    },
+    navigateToTaskPost() {
       wx.navigateTo({ url: '/pages/task/task' }) // 发布任务
     },
 
