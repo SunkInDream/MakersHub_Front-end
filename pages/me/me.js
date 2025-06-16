@@ -82,7 +82,7 @@ Page({
   },
 
   goToBorrowPage() {
-    this.navigateToPage("/pages/borrow/borrow");
+    this.navigateToPage("/pages/my_stuff_borrow_list/my_stuff_borrow_list");
   },
 
   goToProjectPage() {
@@ -90,7 +90,7 @@ Page({
   },
 
   goToVenuePage() {
-    this.navigateToPage("/pages/venue/venue");
+    this.navigateToPage("/pages/my_site_borrow_list/my_site_borrow_list");
   },
 
   goToHonorWallPage() {

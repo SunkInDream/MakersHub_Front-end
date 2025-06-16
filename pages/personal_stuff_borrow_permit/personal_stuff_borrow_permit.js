@@ -1,6 +1,6 @@
 const API_BASE = 'http://146.56.227.73:8000';
 const TOKEN_KEY = 'auth_token';
-
+//
 Page({
   data: {
     isLinkFocused: false,
@@ -97,7 +97,7 @@ Page({
       0: '未审核',
       1: '已通过',
       2: '已打回',
-      3: '已借出'
+      3: '已归还'
     };
     
     if (detail.start_time) {
