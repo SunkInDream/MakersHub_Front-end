@@ -31,6 +31,13 @@
           "launchMode": "default"
         },
         {
+          "name": "pages/xiumi_submit/xiumi_submit",
+          "pathName": "pages/xiumi_submit/xiumi_submit",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/my_xiumi_list/my_xiumi_link",
           "pathName": "pages/my_xiumi_list/my_xiumi_link",
           "query": "",
