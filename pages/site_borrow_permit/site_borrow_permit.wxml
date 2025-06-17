@@ -102,7 +102,7 @@
     </view>
   </view>
 
-  <view class="reply-container" wx:if="{{apiData.state === 1}}">
+  <view class="reply-container" wx:if="{{apiData.state === 0 || apiData.state === 1}}">
     <textarea 
     class="form-input {{isReviewFocused ? 'focused' : ''}}" 
     bindtap = "onReviewFocused" 

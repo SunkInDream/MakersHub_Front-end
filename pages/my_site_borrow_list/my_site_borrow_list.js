@@ -1,28 +1,28 @@
 // pages/my_site_borrow_list/my_site_borrow_list.js
-const API_BASE = "http://146.56.227.73:8000";
+const API_BASE = "https://mini.makershub.cn";
 const token = wx.getStorageSync('auth_token');
-
-// 引入外部utils工具
-const utils = require("../../utils/util")
+const utils = require("../../utils/util");
 
 Page({
   data: {
-    tab: 0, // 当前 tab 页索引
+    tab: 0,
     sortText: '默认',
     currentSort: 'default',
     isFolded: true,
-    stateTag: ["待审核", "已打回", "借用中", "已归还"],
-    stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF'],
+    stateTag: ["待审核", "已打回", "借用中", "已归还", "已取消"],
+    stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF', '#FFFFFF'],
     stateColors: {
-      0: "#666",      // 待审核
-      1: "#E33C64",   // 已打回
-      2: "#ffeaa7",   // 借用中
-      3: "#00adb5"    // 已归还
+      0: "#666", // 待审核
+      1: "#E33C64", // 已打回
+      2: "#ffeaa7", // 借用中
+      3: "#00adb5", // 已归还
+      4: "#999999" // 已取消（新增颜色）
     },
-    list: [],         // 全部申请
-    borrowingList: [], // 借用中 (state=2)
-    returnedList: [],  // 已归还 (state=3)
-    unpermittedList: [], // 在约 (state=0 or state=1)
+    list: [],
+    borrowingList: [],
+    returnedList: [],
+    unpermittedList: [],
+    cancelledList: [],
     mockData: {
       code: 200,
       message: "successfully get application list",
@@ -61,64 +61,62 @@ Page({
       }
     }
   },
-// 初始化时加载数据
+
   onLoad() {
     this.loadData();
   },
 
-// 过滤数据到不同分类
-  filterData(dataList) {
-    // 处理时间格式
-    const formattedDataList = dataList.map(item => {
-      return {
-        ...item,
-        formatted_time: utils.formatDateTime(item.created_time)
-      };
+  onShow() {
+    this.loadData(); // 每次页面显示时刷新数据
+  },
+
+  onReady() {
+    const eventChannel = this.getOpenerEventChannel();
+    eventChannel.on('refreshList', (data) => {
+      console.log('收到刷新事件：', data);
+      this.loadData(); // 收到事件后刷新数据
     });
+  },
+
+  filterData(dataList) {
+    const formattedDataList = dataList.map(item => ({
+      ...item,
+      formatted_time: utils.formatDateTime(new Date(item.created_time))
+    }));
 
     const borrowingList = formattedDataList.filter(item => item.state === 2);
     const returnedList = formattedDataList.filter(item => item.state === 3);
     const unpermittedList = formattedDataList.filter(item => item.state === 0 || item.state === 1);
+    const cancelledList = formattedDataList.filter(item => item.state === 4); // 修复：item.state === 4
 
     this.setData({
       list: formattedDataList,
       borrowingList,
       returnedList,
-      unpermittedList
+      unpermittedList,
+      cancelledList
     });
     console.log("list: ", this.data.list);
     console.log("borrowingList: ", this.data.borrowingList);
     console.log("returnedList: ", this.data.returnedList);
     console.log("unpermittedList: ", this.data.unpermittedList);
+    console.log("cancelledList: ", this.data.cancelledList);
   },
 
-  // 加载数据（使用模拟数据或实际API）
   loadData() {
-    // try {
-    //   // 模拟API调用
-    //   const response = this.data.mockData;
-    //   if (response && response.data && response.data.list) {
-    //     this.filterData(response.data.list);
-    //   } else {
-    //     wx.showToast({ title: '数据加载失败', icon: 'error' });
-    //   }
-    // } catch (err) {
-    //   console.error('加载数据错误:', err);
-    //   wx.showToast({ title: '数据加载失败', icon: 'error' });
-    // }
-    const that = this;
     wx.showLoading({ title: '加载中...' });
     wx.request({
       url: `${API_BASE}/sites-borrow/view`,
       method: 'GET',
       header: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' // 添加 Content-Type
       },
-      success(res) {
+      success: (res) => {
         wx.hideLoading();
         console.log("apiData", JSON.stringify(res.data.data, null, 2));
         if (res.data && res.data.code === 200 && res.data.data && Array.isArray(res.data.data.list)) {
-          that.filterData(res.data.data.list);
+          this.filterData(res.data.data.list);
         } else {
           wx.showToast({
             title: res.data.message || '数据加载失败',
@@ -127,26 +125,28 @@ Page({
           console.error('后端返回异常：', res);
         }
       },
-      fail(err) {
+      fail: (err) => {
         wx.hideLoading();
         wx.showToast({ title: '网络请求失败', icon: 'error' });
         console.error('wx.request 调用失败：', err);
       }
     });
   },
-  // 切换 tab
+
   changeItem(e) {
     const index = parseInt(e.currentTarget.dataset.item);
     this.setData({ tab: index });
   },
+
   onSwiperChange(e) {
     this.setData({ tab: e.detail.current });
   },
+
   handlerGobackClick() {
     wx.showModal({
       title: '你点击了返回',
       content: '是否确认返回',
-      success: e => {
+      success: (e) => {
         if (e.confirm) {
           const pages = getCurrentPages();
           if (pages.length >= 2) {
@@ -158,15 +158,15 @@ Page({
       }
     });
   },
+
   handlerGohomeClick() {
     wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  // 跳转到详情页
   navigateToDetail(e) {
     const applyId = e.currentTarget.dataset.applyId;
     const state = e.currentTarget.dataset.state;
-    console.log("applyId:", applyId); 
+    console.log("applyId:", applyId);
     wx.navigateTo({
       url: `/pages/my_site_borrow_detail/my_site_borrow_detail?apply_id=${applyId}&state=${state}`
     });

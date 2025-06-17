@@ -1,5 +1,5 @@
 // pages/my_site_borrow_detail/my_site_borrow_detail.js
-const API_BASE = "http://146.56.227.73:8000";
+const API_BASE = "https://mini.makershub.cn";
 const token = wx.getStorageSync('auth_token');
 const DEBUG = false; // 调试模式标志
 
@@ -133,7 +133,7 @@ Page({
   cancelApplication() {
     wx.showModal({
       title: '确认取消',
-      content: '取消后不可再次申请，是否确认取消？',
+      content: '取消后本次申请作废，确认取消？',
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({
@@ -141,7 +141,7 @@ Page({
           });
           
           wx.request({
-            url: `${API_BASE}/site-borrow/cancel/${this.data.apply_id}`,
+            url: `${API_BASE}/sites-borrow/cancel/${this.data.apply_id}`,
             method: 'POST',
             header: {
               'content-type': 'application/json',
@@ -188,6 +188,60 @@ Page({
     // 直接跳转到申请页面，并传递apply_id参数
     wx.navigateTo({
       url: `/pages/site_borrow_apply/site_borrow_apply?edit=true&apply_id=${this.data.apply_id}`
+    });
+  },
+
+  // 新增：归还场地
+  returnSite() {
+    wx.showModal({
+      title: '',
+      content: '场地归还后不再可用，确认归还场地？',
+      confirmColor: '#00adb5',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({
+            title: '归还中...',
+          });
+          wx.request({
+            url: `${API_BASE}/sites-borrow/return/${this.data.apply_id}`,
+            method: 'PATCH',
+            header: {
+              'content-type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            data: {}, // 无需额外数据，后端处理 state
+            success: (res) => {
+              if (res.data.code === 200) {
+                wx.showToast({
+                  title: '归还成功',
+                  icon: 'success',
+                  duration: 1500,
+                  success: () => {
+                    setTimeout(() => {
+                      wx.navigateBack();
+                    }, 1500);
+                  }
+                });
+              } else {
+                wx.showToast({
+                  title: res.data.message || '归还失败',
+                  icon: 'none'
+                });
+              }
+            },
+            fail: (err) => {
+              console.error('归还请求失败:', err);
+              wx.showToast({
+                title: '网络错误，请重试',
+                icon: 'none'
+              });
+            },
+            complete: () => {
+              wx.hideLoading();
+            }
+          });
+        }
+      }
     });
   },
 

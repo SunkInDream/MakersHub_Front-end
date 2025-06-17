@@ -1,34 +1,29 @@
 // pages/FieldApply/FieldApply.js
-const API_BASE = "http://146.56.227.73:8000";
+const API_BASE = "https://mini.makershub.cn"; // 更新为新域名
 const token = wx.getStorageSync('auth_token');
-
-// 引入外部utils工具
-const utils = require("../../utils/util")
+const utils = require("../../utils/util");
 
 Page({
   data: {
-    // 页面渲染样式相关
-    tab: 0, // 当前 tab 页索引
+    tab: 0,
     sortText: '默认',
     currentSort: 'default',
     isFolded: true,
-    stateTag: ["待审核", "已打回", "已通过", "已归还"],
-    stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF'],
+    stateTag: ["待审核", "已打回", "已通过", "已归还", "已取消"], // 添加“已取消”
+    stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF', '#FFFFFF'],
     stateColors: {
-      0: "#666",      // 待审核
-      1: "#E33C64",   // 已打回
-      2: "#ffeaa7",   // 已通过
-      3: "#00adb5"    // 已归还
+      0: "#666", // 待审核
+      1: "#E33C64", // 已打回
+      2: "#ffeaa7", // 已通过
+      3: "#00adb5", // 已归还
+      4: "#999999" // 已取消（新增）
     },
-
-    // 分类列表
-    list: [],         // 全部申请
-    unreviewedList: [],   // 未审核申请
-    approvedList: [],     // 已通过申请
-    rejectedList: [],     // 已打回申请
-    returnedList: [],      // 已归还申请
-
-    // 模拟数据
+    list: [],
+    unreviewedList: [],
+    approvedList: [],
+    rejectedList: [],
+    returnedList: [],
+    cancelledList: [], // 新增取消列表
     mockData: {
       code: 200,
       message: "successfully get application list",
@@ -68,56 +63,64 @@ Page({
     }
   },
 
-  // 初始化不需要 currentList
   onLoad() {
     this.loadData();
   },
 
-  // 过滤数据到不同分类
-  filterData(dataList) {
-    // 处理时间格式
-    const formattedDataList = dataList.map(item => {
-      return {
-        ...item,
-        formatted_time: utils.formatDateTime(item.created_time)
-      };
+  onShow() {
+    this.loadData(); // 每次页面显示时刷新数据
+  },
+
+  onReady() {
+    const eventChannel = this.getOpenerEventChannel();
+    eventChannel.on('refreshList', (data) => {
+      console.log('收到刷新事件：', data);
+      this.loadData(); // 收到事件后刷新数据
     });
+  },
+
+  filterData(dataList) {
+    const formattedDataList = dataList.map(item => ({
+      ...item,
+      formatted_time: utils.formatDateTime(new Date(item.created_time))
+    }));
 
     const unreviewedList = formattedDataList.filter(item => item.state === 0);
     const rejectedList = formattedDataList.filter(item => item.state === 1);
     const approvedList = formattedDataList.filter(item => item.state === 2);
     const returnedList = formattedDataList.filter(item => item.state === 3);
-    
+    const cancelledList = formattedDataList.filter(item => item.state === 4); // 新增取消分类
 
     this.setData({
       list: formattedDataList,
       unreviewedList,
       approvedList,
+      rejectedList,
       returnedList,
-      rejectedList
+      cancelledList
     });
     console.log("list: ", this.data.list);
     console.log("unreviewedList: ", this.data.unreviewedList);
     console.log("approvedList: ", this.data.approvedList);
-    console.log("rejecedList: ", this.data.rejectedList);
+    console.log("rejectedList: ", this.data.rejectedList);
     console.log("returnedList: ", this.data.returnedList);
+    console.log("cancelledList: ", this.data.cancelledList);
   },
 
-  // 加载数据（使用模拟数据或实际API）
   loadData() {
-    const that = this;
     wx.showLoading({ title: '加载中...' });
     wx.request({
       url: `${API_BASE}/sites-borrow/view-all`,
       method: 'GET',
       header: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json' // 添加 Content-Type
       },
-      success(res) {
+      success: (res) => {
         wx.hideLoading();
         console.log("apiData", JSON.stringify(res.data.data, null, 2));
         if (res.data && res.data.code === 200 && res.data.data && Array.isArray(res.data.data.list)) {
-          that.filterData(res.data.data.list);
+          this.filterData(res.data.data.list);
         } else {
           wx.showToast({
             title: res.data.message || '数据加载失败',
@@ -126,7 +129,7 @@ Page({
           console.error('后端返回异常：', res);
         }
       },
-      fail(err) {
+      fail: (err) => {
         wx.hideLoading();
         wx.showToast({ title: '网络请求失败', icon: 'error' });
         console.error('wx.request 调用失败：', err);
@@ -134,8 +137,6 @@ Page({
     });
   },
 
-
-  // 切换 tab
   changeItem(e) {
     const index = parseInt(e.currentTarget.dataset.item);
     this.setData({ tab: index });
@@ -149,7 +150,7 @@ Page({
     wx.showModal({
       title: '你点击了返回',
       content: '是否确认返回',
-      success: e => {
+      success: (e) => {
         if (e.confirm) {
           const pages = getCurrentPages();
           if (pages.length >= 2) {
@@ -166,9 +167,7 @@ Page({
     wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  // 跳转到详情页
   navigateToDetail(e) {
-    console.log(e);
     const applyId = e.currentTarget.dataset.applyId;
     const state = e.currentTarget.dataset.state;
     console.log("applyId", applyId);

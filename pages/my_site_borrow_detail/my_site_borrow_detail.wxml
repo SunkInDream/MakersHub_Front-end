@@ -27,7 +27,7 @@
     <view class="section">
       <text class="sub-title">借用详情</text>
       <view class="info">
-        场地用途：{{apiData.start_time}}
+        场地用途：{{apiData.purpose}}
       </view>
       <view class="info">
         借用场地：{{apiData.site}}  [工位 {{apiData.number}}]
@@ -69,6 +69,9 @@
     <view wx:if="{{apiData.state === 0 || apiData.state === 1}}" class="action-buttons" >
         <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
         <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
+      </view>
+      <view wx:if="{{apiData.state === 2}}" class="action-buttons" >
+        <view class="action-btn modify-btn" bindtap="returnSite">归还场地</view>
       </view>
   </view>
   <image class="bottom-image" src="/images/activitydetail/cat_black.svg"></image>
