@@ -1,66 +1,70 @@
 <view class="container">
-  <!-- 导航栏 -->
-  <navBar title='物品借用详情' background='#00adb5' color='#fff'
-          back="{{true}}" home="{{true}}" iconTheme='white'
+  <!-- 顶部导航栏 -->
+  <navBar title="物品借用详情" background="#00adb5" color="#fff"
+          back="{{true}}" home="{{true}}" iconTheme="white"
           bindback="handlerGobackClick" bindhome="handlerGohomeClick" />
 
-  <!-- 借用详情主体 -->
-  <view class="detail-container">
-    <view class="box" style="background-color: {{stateColors[apiData.state]}};">
-      <text class="boxtext" style="color: {{stateText[apiData.state]}}">
-        {{stateTag[apiData.state]}}
-      </text>
-    </view>
-
-    <view class="section">
-      <text class="sub-title">借物人信息</text>
-      <view class="info">姓名：{{apiData.name}}</view>
-      <view class="info">学号：{{apiData.student_id}}</view>
-      <view class="info">电话：{{apiData.phone_num}}</view>
-      <view class="info">邮箱：{{apiData.email}}</view>
-      <view class="info">年级：{{apiData.grade}}</view>
-      <view class="info">专业：{{apiData.major}}</view>
-    </view>
-
-    <view class="section">
-      <text class="sub-title">借用详情</text>
-      <view class="info">借物类别：{{apiData.stuff.type}}</view>
-      <view class="info">借物名称：{{apiData.stuff.name}}</view>
-      <view class="info">借物数量：{{apiData.stuff.number}}</view>
-    </view>
-
-    <view class="section">
-      <text class="sub-title">项目信息</text>
-      <view class="info">
-        项目编号：{{apiData.project_number||'个人借物无项目信息'}}
-        <image class="copy-icon" bindtap="copyLink" src="/images/activitydetail/copy.svg" />
+  <!-- 可滚动区域 -->
+  <scroll-view class="scroll-area" scroll-y="true">
+    <view class="detail-container">
+      <view class="box" style="background-color: {{stateColors[apiData.state]}};">
+        <text class="boxtext" style="color: {{stateText[apiData.state]}}">
+          {{stateTag[apiData.state]}}
+        </text>
       </view>
-      <view class="info">指导老师：{{apiData.supervisor_name||'个人借物无项目信息'}}</view>
-      <view class="info">联系方式：{{apiData.supervisor_phone||'个人借物无项目信息'}}</view>
-    </view>
 
-    <view class="section">
-      <text class="sub-title">起借时间</text>
-      <view class="info">{{apiData.start_time}}</view>
-    </view>
+      <view class="section">
+        <text class="sub-title">借物人信息</text>
+        <view class="info">姓名：{{apiData.name}}</view>
+        <view class="info">学号：{{apiData.student_id}}</view>
+        <view class="info">电话：{{apiData.phone_num}}</view>
+        <view class="info">邮箱：{{apiData.email}}</view>
+        <view class="info">年级：{{apiData.grade}}</view>
+        <view class="info">专业：{{apiData.major}}</view>
+      </view>
 
-    <view class="section">
-      <text class="sub-title">归还时间</text>
-      <view class="info">{{apiData.deadline}}</view>
-    </view>
+      <view class="section">
+        <text class="sub-title">借用详情</text>
+        <view class="info">借物类别：{{apiData.stuff.type}}</view>
+        <view class="info">借物名称：{{apiData.stuff.name}}</view>
+        <view class="info">借物数量：{{apiData.stuff.number}}</view>
+      </view>
 
-    <view wx:if="{{apiData.state === 1}}" class="rejected-section">
-      <view class="feedback-container">
-        <view class="feedback-title">审核反馈</view>
-        <view class="feedback-content">{{apiData.review || '暂无反馈信息'}}</view>
+      <view class="section" wx:if="{{apiData.type === 1}}">
+        <text class="sub-title">项目信息</text>
+        <view class="info">
+          项目编号：{{apiData.project_number || '个人借物无项目信息'}}
+          <image class="copy-icon" bindtap="copyLink" src="/images/activitydetail/copy.svg" />
+        </view>
+        <view class="info">指导老师：{{apiData.supervisor_name || '个人借物无项目信息'}}</view>
+        <view class="info">联系方式：{{apiData.supervisor_phone || '个人借物无项目信息'}}</view>
+      </view>
+
+      <view class="section">
+        <text class="sub-title">起借时间</text>
+        <view class="info">{{apiData.start_time}}</view>
+      </view>
+
+      <view class="section">
+        <text class="sub-title">归还时间</text>
+        <view class="info">{{apiData.deadline}}</view>
+      </view>
+
+      <view wx:if="{{apiData.state === 1}}" class="rejected-section">
+        <view class="feedback-container">
+          <view class="feedback-title">审核反馈</view>
+          <view class="feedback-content">{{apiData.review || '暂无反馈信息'}}</view>
+        </view>
+      </view>
+
+      <view class="action-buttons">
+        <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
+        <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
       </view>
     </view>
+    <view class="bottom-placeholder"></view>
+  </scroll-view>
 
-    <view wx:if="{{apiData.state === 0 || apiData.state === 1}}" class="action-buttons">
-      <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
-      <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
-    </view>
-  </view>
-
-  <image class="bottom-image" src="/images/my_stuff_borrow_detail/white_cat.svg" />
+  <!-- 底部固定黑猫图片 -->
+  <!-- <image class="bottom-image" src="/images/my_stuff_borrow_detail/cat_black.svg" /> -->
 </view>

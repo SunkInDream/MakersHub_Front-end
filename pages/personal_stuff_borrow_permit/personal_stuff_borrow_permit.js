@@ -286,9 +286,6 @@ Page({
           console.log('[updateStuffQuantity] 更新结果:', updateData);
           
           let successMessage = '审核通过';
-          if (updateData.successful_updates > 0) {
-            successMessage += `，已更新${updateData.successful_updates}个物资的余量`;
-          }
           
           if (updateData.failed_count > 0) {
             successMessage += `，${updateData.failed_count}个物资更新失败`;
