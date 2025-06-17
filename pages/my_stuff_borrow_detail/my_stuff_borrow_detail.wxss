@@ -1,28 +1,31 @@
-/* pages/personal_stuff_borrow_detail/personal_stuff_borrow_detail.wxss */
-/* container布局 */
 .container {
-  padding: 0;
   position: relative;
-  background: #fff;
+  width: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  height: 100vh;
+  background: #fff;
 }
 
+.scroll-area {
+  position: absolute;
+  top: 170rpx;  
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: scroll;
+}
+
+
 .detail-container {
-  flex: 1;
-  position: relative;
-  align-items: flex-start;
   padding: 30rpx 30rpx 0 30rpx;
-  justify-content: flex-start;
   width: 100%;
 }
 
 /* 右上角状态标签 */
 .box {
   position: absolute;
-  top: 0rpx; 
+  top: 0rpx;
   right: 0rpx;
   width: 160rpx;
   height: 50rpx;
@@ -41,10 +44,9 @@
   color: rgba(255, 255, 255, 1);
 }
 
-
 /* 内容区块通用样式 */
 .section {
-  margin: 0 0 50rpx 0;
+  margin-bottom: 50rpx;
 }
 
 /* 标题带竖线效果 */
@@ -55,9 +57,8 @@
   color: #222831;
   font-weight: 400;
   line-height: 1.4;
-  border-left: 8rpx solid #00adb5
+  border-left: 8rpx solid #00adb5;
 }
-
 
 /* 信息内容样式 */
 .info {
@@ -79,16 +80,19 @@
   transform: translateY(-50%);
 }
 
-/* 底部装饰图 */
+/* 固定底部装饰图
 .bottom-image {
-  width: 440.53rpx;
-  height: 174.4rpx;
-  position: relative;    
-  bottom: 0rpx;       
-  align-self: center;
-}
+  width: 440rpx;
+  height: 174rpx;
+  position: fixed;
+  bottom: 0rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+} */
+
+/* 按钮样式 */
 .action-btn {
-  /* flex: 1; */
   height: 80rpx;
   width: 250rpx;
   font-size: 32rpx;
@@ -118,25 +122,21 @@
   border: none;
 }
 
-/* 按钮点击效果 */
 .action-btn:active {
   opacity: 0.8;
   transform: scale(0.98);
 }
-/* 操作按钮容器 */
+
+/* 按钮容器 */
 .action-buttons {
   display: flex;
   justify-content: center;
   gap: 120rpx;
   padding: 0 20rpx;
   align-self: center;
+  margin-top: 50rpx;
+  margin-bottom: 200rpx; /* 避免被底部图片遮住 */
 }
-
-.bottom-image {
-  margin-top: 40rpx;
-  width: 440rpx;
-  height: 174rpx;
-  position: relative;
-  align-self: center;
-  bottom: 0rpx;
+.bottom-placeholder {
+  height: 100rpx;  /* 根据需要的空白高度调整，例如 60rpx、80rpx、100rpx */
 }

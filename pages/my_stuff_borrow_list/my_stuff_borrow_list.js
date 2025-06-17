@@ -72,11 +72,12 @@ Page({
       },
       success: (res) => {
         wx.hideLoading();
+        console.log(res.data);
         if (res.statusCode === 200 && res.data && res.data.code === 200) {
           if (res.data.data && Array.isArray(res.data.data.records)) {
             const formattedRecords = res.data.data.records.map(item => {
               const startTime = item.start_time;
-              const cleanStartTime = startTime.replace('T', ' ').replace(/\.\d+Z$/, '');
+              const cleanStartTime = startTime.slice(0, 10);
               return {
                 ...item,
                 start_time: cleanStartTime

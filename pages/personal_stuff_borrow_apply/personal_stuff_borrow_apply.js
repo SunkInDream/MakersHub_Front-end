@@ -192,7 +192,7 @@ Page({
   onSubmit() {
     const { name, student_id, leaderPhone, email, grade, major, content,
       selectedYear, selectedMonth, selectedDay, selectedTextList } = this.data;
-
+  
     if (!name || !student_id || !leaderPhone || !email || !grade || !major || !content) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' }); return;
     }
@@ -202,13 +202,13 @@ Page({
     if (!selectedTextList.filter(item => item).length) {
       wx.showToast({ title: '请至少选择一项物资', icon: 'none' }); return;
     }
-
+  
     const deadline = `${selectedYear.replace('年', '')}-${selectedMonth.replace('月', '').padStart(2, '0')}-${selectedDay.replace('日', '').padStart(2, '0')} 00:00:00`;
     const materials = selectedTextList.filter(item => item);
-
+  
     const token = wx.getStorageSync(TOKEN_KEY);
     wx.showLoading({ title: '提交中...' });
-
+  
     wx.request({
       url: `${API_BASE}/stuff-borrow/apply`,
       method: 'POST',
@@ -224,7 +224,12 @@ Page({
         wx.hideLoading();
         if (res.statusCode === 200 && res.data.code === 200) {
           wx.showToast({ title: '提交成功', icon: 'success' });
-          setTimeout(() => { this.resetForm(); }, 2000);
+          setTimeout(() => {
+            this.resetForm();
+            wx.redirectTo({
+              url: '/pages/index/index'
+            });            
+          }, 2000);
         } else {
           wx.showToast({ title: res.data.message || '提交失败', icon: 'none' });
         }
@@ -234,17 +239,7 @@ Page({
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
-  },
-  handlerGobackClick() {
-    wx.navigateBack({
-      delta: 1,
-      fail: () => {
-        wx.switchTab({
-          url: '/pages/index/index'
-        });
-      }
-    });
-  },
+  },  
   
   handlerGohomeClick() {
     wx.switchTab({

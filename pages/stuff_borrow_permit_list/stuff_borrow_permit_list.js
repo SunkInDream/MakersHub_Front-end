@@ -47,6 +47,7 @@ Page({
         'Content-Type': 'application/json'
       },
       success: (res) => {
+        console.log("——————————————————————",res.data);
         if (res.data && res.data.code === 200) {
           const records = res.data.data.records || [];
           const stats = { total: res.data.data.total || records.length };
