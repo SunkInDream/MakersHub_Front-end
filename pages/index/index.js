@@ -4,6 +4,8 @@
 // ========================================
 
 // ======== 原 login.js 部分开始 ========
+const API_BASE = 'https://mini.makershub.cn';
+
 let authInProgress = false;
 const TOKEN_KEY = 'auth_token';
 const USER_INFO_KEY = 'userInfo';
@@ -110,7 +112,7 @@ const handleUserAuth = (confirmed) => {
       }
       console.log('[Auth] 获取 code 成功:', res.code);
       wx.request({
-        url: 'http://146.56.227.73:8000/users/wx-login',
+        url: `${API_BASE}/users/wx-login`,
         method: 'POST',
         data: { code: res.code },
         success: (response) => {
