@@ -1,97 +1,120 @@
-// pages/my_site_borrow_detail/my_site_borrow_detail.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
-const DEBUG = false; // 调试模式标志
+const DEBUG = false;
+function parseStuff(data) {
+  console.log('[parseStuff] 解析 stuff_list:', data.stuff_list);
+  if (data.stuff_list && Array.isArray(data.stuff_list)) {
+    const firstStuffStr = data.stuff_list[0]?.stuff || "";
+    const parts = firstStuffStr.split(" - ");
+    if (parts.length === 3) {
+      data.stuff = {
+        type: parts[0],
+        name: parts[1],
+        number: parts[2]
+      };
+    } else {
+      data.stuff = {
+        type: '未知',
+        name: '未知',
+        number: '未知'
+      };
+    }
+  }
+  console.log('[parseStuff] 处理结果:', data.stuff);
+  console.log('[parseStuff] 处理结果data:', data);
+  return data;
+}
 
 Page({
-  /**
-   * 页面的初始数据
-   */
   data: {
     apiData: {},
     stateTag: ["待审核", "已打回", "借用中", "已归还"],
     stateText: ['#FFFFFF', '#FFFFFF', '#222831', '#FFFFFF'],
     stateColors: {
-      0: "#666",      // 待审核
-      1: "#E33C64",   // 已打回
-      2: "#ffeaa7",   // 借用中
-      3: "#00adb5"    // 已归还
+      0: "#666",
+      1: "#E33C64",
+      2: "#ffeaa7",
+      3: "#00adb5"
     },
-    apply_id: ''
+    sb_id: ''
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
   onLoad(options) {
-    if (options.apply_id) {
-      this.setData({
-        apply_id: options.apply_id
-      });
-      this.fetchSiteBorrowDetail(options.apply_id);
+    console.log('[onLoad] 页面参数:', options);
+    const sb_id = options.sb_id;
+    if (sb_id) {
+      console.log(`[onLoad] 获取到 sb_id: ${sb_id}`);
+      this.setData({ sb_id });
+      this.fetchStuffBorrowDetail(sb_id);
     } else if (DEBUG) {
-      // 调试模式：使用模拟的apply_id
-      const mockApplyId = "LB1749636004000";
-      this.setData({
-        apply_id: mockApplyId
-      });
-      this.fetchSiteBorrowDetail(mockApplyId);
+      const mockId = "SB1749636004000";
+      console.warn('[onLoad] 使用 DEBUG 模式下的 mockId:', mockId);
+      this.setData({ sb_id: mockId });
+      this.fetchStuffBorrowDetail(mockId);
     } else {
+      console.error('[onLoad] 未获取到 sb_id');
       wx.showToast({
-        title: '获取申请id失败',
+        title: '获取申请ID失败',
         icon: 'error'
       });
     }
   },
 
-  /**
-   * 获取场地借用详情
-   */
-  fetchSiteBorrowDetail(apply_id) {
-    wx.showLoading({
-      title: '加载中...',
-    });
-    if(DEBUG) {
-      // 调试模式：使用模拟数据
+  fetchStuffBorrowDetail(sb_id) {
+    console.log(`[fetchStuffBorrowDetail] 请求详情: ${sb_id}`);
+    wx.showLoading({ title: '加载中...' });
+
+    if (DEBUG) {
       setTimeout(() => {
+        console.log('[DEBUG] 加载 mock 数据');
         const mockData = {
-            apply_id: apply_id,
-            name: "张三",
-            student_id: "2023141460079",
-            phone_num: "13800138000",
-            email: "student@example.com",
-            purpose: "创新项目展示与研讨",
-            project_id: "PJ1749636004000",
-            mentor_name: "李华",
-            mentor_phone_num: "13900139000",
-            site: "二基楼B101",
-            number: 1,
-            start_time: "2024-02-15",
-            end_time: "2024-02-25",
-            state: 0,
-            review: ""
-          };        
-        this.setData({
-          apiData: mockData
-        });
-        
-        console.log('加载的申请详情:', mockData);
+          sb_id: sb_id,
+          name: "张三",
+          student_id: "2023141460079",
+          phone_num: "13800138000",
+          email: "student@example.com",
+          grade: "大三",
+          major: "计算机",
+          purpose: "创新项目展示与研讨",
+          project_id: "PJ1749636004000",
+          mentor_name: "李华",
+          mentor_phone_num: "13900139000",
+          site: "二基楼B101",
+          number: 1,
+          start_time: "2024-02-15",
+          end_time: "2024-02-25",
+          state: 0,
+          review: "",
+          stuff_list: [
+            { stuff: "开发板 - ESP-32-WROOM - 1" }
+          ]
+        };
+
+        const parsed = this.parseStuff(mockData);
+        console.log('[DEBUG] 解析后的数据:', parsed);
+        this.setData({ apiData: parsed });
         wx.hideLoading();
       }, 500);
     } else {
       wx.request({
-        url: `${API_BASE}/sites-borrow/detail/${apply_id}`,
+        url: `${API_BASE}/stuff-borrow/detail/${sb_id}`,
         method: 'GET',
         header: {
           'content-type': 'application/json',
           'Authorization': token
         },
         success: (res) => {
+          console.log('[fetchStuffBorrowDetail] 接口返回:', res);
           if (res.data.code === 200) {
-            this.setData({
-              apiData: res.data.data
-            });
+            const data = res.data.data;
+            console.log('[fetchStuffBorrowDetail] 原始数据:', data);
+            if (data.start_time) data.start_time = data.start_time.replace('T', ' ').replace(/\.\d+Z$/, '');
+            if (data.deadline) data.deadline = data.deadline.replace('T', ' ').replace('Z','').replace(/\.\d+Z$/, '');
+            const parsedData = parseStuff(data);
+            console.log('[fetchStuffBorrowDetail] 解析后数据:', parsedData);
+            this.setData({ apiData: parsedData });
           } else {
+            console.warn('[fetchStuffBorrowDetail] 获取失败:', res.data.message);
             wx.showToast({
               title: res.data.message || '获取详情失败',
               icon: 'none'
@@ -99,7 +122,7 @@ Page({
           }
         },
         fail: (err) => {
-          console.error('请求失败:', err);
+          console.error('[fetchStuffBorrowDetail] 请求失败:', err);
           wx.showToast({
             title: '网络错误，请重试',
             icon: 'none'
@@ -112,13 +135,35 @@ Page({
     }
   },
 
-  /**
-   * 复制项目编号
-   */
+  // parseStuff(data) {
+  //   console.log('[parseStuff] 解析 stuff_list:', data.stuff_list);
+  //   if (data.stuff_list && Array.isArray(data.stuff_list)) {
+  //     const firstStuffStr = data.stuff_list[0]?.stuff || "";
+  //     const parts = firstStuffStr.split(" - ");
+  //     if (parts.length === 3) {
+  //       data.stuff = {
+  //         type: parts[0],
+  //         name: parts[1],
+  //         number: parts[2]
+  //       };
+  //     } else {
+  //       data.stuff = {
+  //         type: '未知',
+  //         name: '未知',
+  //         number: '未知'
+  //       };
+  //     }
+  //   }
+  //   console.log('[parseStuff] 处理结果:', data.stuff);
+  //   console.log('[parseStuff] 处理结果data:', data);
+  //   return data;
+  // },
+
   copyLink() {
     wx.setClipboardData({
-      data: this.data.apiData.project_id,
+      data: this.data.apiData.project_id || '',
       success: () => {
+        console.log('[copyLink] 项目编号已复制:', this.data.apiData.project_id);
         wx.showToast({
           title: '已复制',
           icon: 'none'
@@ -127,27 +172,25 @@ Page({
     });
   },
 
-  /**
-   * 取消申请
-   */
   cancelApplication() {
+    console.log('[cancelApplication] 用户点击取消申请');
     wx.showModal({
       title: '确认取消',
       content: '取消后不可再次申请，是否确认取消？',
       success: (res) => {
         if (res.confirm) {
-          wx.showLoading({
-            title: '取消中...',
-          });
-          
+          console.log('[cancelApplication] 用户确认取消');
+          wx.showLoading({ title: '取消中...' });
+
           wx.request({
-            url: `${API_BASE}/site-borrow/cancel/${this.data.apply_id}`,
+            url: `${API_BASE}/stuff-borrow/cancel/${this.data.sb_id}`,
             method: 'POST',
             header: {
               'content-type': 'application/json',
               'Authorization': token
             },
             success: (res) => {
+              console.log('[cancelApplication] 接口返回:', res);
               if (res.data.code === 200) {
                 wx.showToast({
                   title: '申请已取消',
@@ -166,7 +209,8 @@ Page({
                 });
               }
             },
-            fail: () => {
+            fail: (err) => {
+              console.error('[cancelApplication] 网络错误:', err);
               wx.showToast({
                 title: '网络错误，请重试',
                 icon: 'none'
@@ -176,44 +220,41 @@ Page({
               wx.hideLoading();
             }
           });
+        } else {
+          console.log('[cancelApplication] 用户取消操作');
         }
       }
     });
   },
 
-  /**
-   * 修改申请
-   */
   modifyApplication() {
-    // 直接跳转到申请页面，并传递apply_id参数
+    console.log('[modifyApplication] 跳转修改页面');
+    
+    const { type } = this.data.apiData; // 0: 个人, 1: 团队
+    const pagePath = type === 0 
+      ? 'personal_stuff_borrow_apply' 
+      : 'team_stuff_borrow_apply';
+  
     wx.navigateTo({
-      url: `/pages/site_borrow_apply/site_borrow_apply?edit=true&apply_id=${this.data.apply_id}`
+      url: `/pages/${pagePath}/${pagePath}?edit=true&sb_id=${this.data.sb_id}`
     });
   },
 
-  /**
-   * 返回上一页
-   */
   handlerGobackClick() {
-    wx.navigateBack({
-      delta: 1
-    });
+    console.log('[handlerGobackClick] 返回上一页');
+    wx.navigateBack({ delta: 1 });
   },
 
-  /**
-   * 返回首页
-   */
   handlerGohomeClick() {
+    console.log('[handlerGohomeClick] 返回首页');
     wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
   onPullDownRefresh() {
-    if (this.data.apply_id) {
-      this.fetchSiteBorrowDetail(this.data.apply_id);
+    console.log('[onPullDownRefresh] 用户下拉刷新');
+    if (this.data.sb_id) {
+      this.fetchStuffBorrowDetail(this.data.sb_id);
     }
     wx.stopPullDownRefresh();
   }
-})
+});
