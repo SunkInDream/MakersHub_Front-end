@@ -1,74 +1,37 @@
-// pages/my_site_borrow_list/my_site_borrow_list.js
+// pages/my_stuff_borrow_list/my_stuff_borrow_list.js
 const API_BASE = "http://146.56.227.73:8000";
-const token = wx.getStorageSync('auth_token');
-
-// 引入外部utils工具
+const TOKEN_KEY = 'auth_token';
 const utils = require("../../utils/util")
 
 Page({
   data: {
-    tab: 0, // 当前 tab 页索引
+    tab: 0,
     sortText: '默认',
     currentSort: 'default',
     isFolded: true,
     stateTag: ["待审核", "已打回", "借用中", "已归还"],
     stateText: ['#FFFFFF', '#FFFFFF', '#000000', '#FFFFFF'],
     stateColors: {
-      0: "#666",      // 待审核
-      1: "#E33C64",   // 已打回
-      2: "#ffeaa7",   // 借用中
-      3: "#00adb5"    // 已归还
+      0: "#666",
+      1: "#E33C64",
+      2: "#ffeaa7",
+      3: "#00adb5"
     },
-    list: [],         // 全部申请
-    borrowingList: [], // 借用中 (state=2)
-    returnedList: [],  // 已归还 (state=3)
-    unpermittedList: [], // 在约 (state=0 or state=1)
-    mockData: {
-      code: 200,
-      message: "successfully get application list",
-      data: {
-        total: 4,
-        list: [
-          {
-            apply_id: "LB1749636004000",
-            state: 2,
-            created_time: "2024-01-14T10:10:10Z",
-            site: "二基楼B101",
-            number: 1
-          },
-          {
-            apply_id: "LB1749636006000",
-            state: 0,
-            created_time: "2024-02-14T10:10:12Z",
-            site: "二基楼B208+",
-            number: 2
-          },
-          {
-            apply_id: "LB1749636007000",
-            state: 3,
-            created_time: "2024-03-14T10:10:12Z",
-            site: "二基楼B102",
-            number: 3
-          },
-          {
-            apply_id: "LB1749636008000",
-            state: 1,
-            created_time: "2024-04-14T10:10:12Z",
-            site: "二基楼B209",
-            number: 1
-          }
-        ]
-      }
-    }
+    list: [],
+    borrowingList: [],
+    returnedList: [],
+    unpermittedList: [],
   },
-// 初始化时加载数据
+
   onLoad() {
     this.loadData();
   },
 
-// 过滤数据到不同分类
+  onShow() {
+    this.loadData();
+  },
+
   filterData(dataList) {
-    // 处理时间格式
     const formattedDataList = dataList.map(item => {
       return {
         ...item,
@@ -86,68 +49,73 @@ Page({
       returnedList,
       unpermittedList
     });
-    console.log("list: ", this.data.list);
-    console.log("borrowingList: ", this.data.borrowingList);
-    console.log("returnedList: ", this.data.returnedList);
-    console.log("unpermittedList: ", this.data.unpermittedList);
   },
 
-  // 加载数据（使用模拟数据或实际API）
   loadData() {
-    // try {
-    //   // 模拟API调用
-    //   const response = this.data.mockData;
-    //   if (response && response.data && response.data.list) {
-    //     this.filterData(response.data.list);
-    //   } else {
-    //     wx.showToast({ title: '数据加载失败', icon: 'error' });
-    //   }
-    // } catch (err) {
-    //   console.error('加载数据错误:', err);
-    //   wx.showToast({ title: '数据加载失败', icon: 'error' });
-    // }
-    const that = this;
+    const token = wx.getStorageSync(TOKEN_KEY);
+    if (!token || token === 'undefined' || token === 'null') {
+      wx.showToast({ title: '请先登录', icon: 'none', duration: 2000 });
+      setTimeout(() => {
+        wx.reLaunch({ url: '/pages/login/login' });
+      }, 2000);
+      return;
+    }
+
     wx.showLoading({ title: '加载中...' });
+
     wx.request({
       url: `${API_BASE}/stuff-borrow/view`,
       method: 'GET',
       header: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      success(res) {
+      success: (res) => {
         wx.hideLoading();
-        console.log("apiData", JSON.stringify(res.data.data, null, 2));
-        if (res.data && res.data.code === 200 && res.data.data && Array.isArray(res.data.data.records)) {
-          // 将 records 字段适配为期望的格式
-          that.filterData(res.data.data.records);
+        if (res.statusCode === 200 && res.data && res.data.code === 200) {
+          if (res.data.data && Array.isArray(res.data.data.records)) {
+            const formattedRecords = res.data.data.records.map(item => {
+              const startTime = item.start_time;
+              const cleanStartTime = startTime.replace('T', ' ').replace(/\.\d+Z$/, '');
+              return {
+                ...item,
+                start_time: cleanStartTime
+              };
+            });
+            this.filterData(formattedRecords);
+          } else {
+            wx.showToast({ title: '暂无数据', icon: 'none' });
+          }
+        } else if (res.statusCode === 401) {
+          wx.showToast({ title: '登录已失效，请重新登录', icon: 'none' });
+          setTimeout(() => {
+            wx.reLaunch({ url: '/pages/login/login' });
+          }, 2000);
         } else {
-          wx.showToast({
-            title: res.data.message || '数据加载失败',
-            icon: 'error'
-          });
-          console.error('后端返回异常：', res);
+          wx.showToast({ title: res.data?.message || '数据加载失败', icon: 'error' });
         }
       },
-      fail(err) {
+      fail: (err) => {
         wx.hideLoading();
         wx.showToast({ title: '网络请求失败', icon: 'error' });
-        console.error('wx.request 调用失败：', err);
       }
     });
   },
-  // 切换 tab
+
   changeItem(e) {
     const index = parseInt(e.currentTarget.dataset.item);
     this.setData({ tab: index });
   },
+
   onSwiperChange(e) {
     this.setData({ tab: e.detail.current });
   },
+
   handlerGobackClick() {
     wx.showModal({
       title: '你点击了返回',
       content: '是否确认返回',
-      success: e => {
+      success: (e) => {
         if (e.confirm) {
           const pages = getCurrentPages();
           if (pages.length >= 2) {
@@ -159,17 +127,24 @@ Page({
       }
     });
   },
+
   handlerGohomeClick() {
     wx.reLaunch({ url: '/pages/index/index' });
   },
 
-  // 跳转到详情页
   navigateToDetail(e) {
-    const applyId = e.currentTarget.dataset.applyId;
+    const sbId = e.currentTarget.dataset.sbId;
     const state = e.currentTarget.dataset.state;
-    console.log("applyId:", applyId); 
+    console.log("sbId",sbId);
     wx.navigateTo({
-      url: `/pages/my_stuff_borrow_detail/my_stuff_borrow_detail?apply_id=${applyId}&state=${state}`
+      url: `/pages/my_stuff_borrow_detail/my_stuff_borrow_detail?sb_id=${sbId}&state=${state}`
     });
+  },
+
+  onPullDownRefresh() {
+    this.loadData();
+    setTimeout(() => {
+      wx.stopPullDownRefresh();
+    }, 1500);
   }
 });

@@ -31,6 +31,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-bottom: 40rpx;
 }
 
 .boxtext {
@@ -85,4 +86,57 @@
   position: relative;    
   bottom: 0rpx;       
   align-self: center;
+}
+.action-btn {
+  /* flex: 1; */
+  height: 80rpx;
+  width: 250rpx;
+  font-size: 32rpx;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40rpx;
+  color: #FFFFFF;
+}
+
+/* 取消申请按钮 */
+.cancel-btn {
+  background-color: #E33C64;
+}
+
+.cancel-btn::after {
+  border: none;
+}
+
+/* 修改申请按钮 */
+.modify-btn {
+  background-color: #00ADB5;
+}
+
+.modify-btn::after {
+  border: none;
+}
+
+/* 按钮点击效果 */
+.action-btn:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+/* 操作按钮容器 */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 120rpx;
+  padding: 0 20rpx;
+  align-self: center;
+}
+
+.bottom-image {
+  margin-top: 40rpx;
+  width: 440rpx;
+  height: 174rpx;
+  position: relative;
+  align-self: center;
+  bottom: 0rpx;
 }

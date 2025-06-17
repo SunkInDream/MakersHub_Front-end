@@ -95,8 +95,8 @@ Page({
     let materialsList = [];
     const statusDescMap = {
       0: '未审核',
-      1: '已通过',
-      2: '已打回',
+      1: '已打回',
+      2: '已通过',
       3: '已归还'
     };
     
