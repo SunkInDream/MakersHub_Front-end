@@ -25,40 +25,47 @@
     <!-- 待审核 -->
     <swiper-item>
       <view class="list-container">
-        <block wx:for="{{unreviewedList}}" wx:key="link_id">
-          <view class="item-container">
-            <view class="item-details">
-              <view class="title-and-state">
-                <text class="title">{{item.title}}</text>
-                <view
-                  class="state"
-                  style="background-color: {{stateColors[item.state]}}; color: #fff"
-                >
-                  {{stateTag[item.state]}}
+        <block wx:if="{{unreviewedList.length > 0}}">
+          <block wx:for="{{unreviewedList}}" wx:key="link_id">
+            <view class="item-container">
+              <view class="item-details">
+                <view class="title-and-state">
+                  <text class="title">{{item.title}}</text>
+                  <view
+                    class="state"
+                    style="background-color: {{stateColors[item.state]}}; color: #fff"
+                  >
+                    {{stateTag[item.state]}}
+                  </view>
+                </view>
+                <text class="label">提交时间：</text>
+                <text class="content">{{item.formatted_time}}</text>
+                <text class="label">秀米链接：</text>
+                <view class="link">
+                  <text class="content">{{item.link}}</text>
+                  <image 
+                  class="copy-icon"
+                  src="/images/activitydetail/copy.svg"
+                  mode="widthFix"
+                  bind:tap="copy"
+                  data-link="{{item.link}}"
+                  ></image>
                 </view>
               </view>
-              <text class="label">提交时间：</text>
-              <view class="link">
-                <text class="content">{{item.link}}</text>
-                <image 
-                class="copy-icon"
-                src="/images/activitydetail/copy.svg"
-                mode="widthFix"
-                bind:tap="copy"
+              <view
+                class="detail-btn"
+                data-title="{{item.title}}"
+                data-name="{{item.name}}"
                 data-link="{{item.link}}"
-                ></image>
-              </view>
-              <text class="label">秀米链接：</text>
-              <text class="content">{{item.link}}</text>
+                data-link-id="{{item.link_id}}"
+                bindtap="navigateToDetail"
+              >修改</view>
             </view>
-            <view
-              class="detail-btn"
-              data-title="{{item.title}}"
-              data-name="{{item.name}}"
-              data-link="{{item.link}}"
-              data-link-id="{{item.link_id}}"
-              bindtap="navigateToDetail"
-            >修改</view>
+          </block>
+        </block>
+        <block wx:else>
+          <view class="empty-hint">
+            <text>这里还什么都没有哦\n快去提交喵~</text>
           </view>
         </block>
       </view>
@@ -67,45 +74,52 @@
     <!-- 已打回 -->
     <swiper-item>
       <view class="list-container">
-        <block wx:for="{{rejectedList}}" wx:key="link_id">
-          <view class="item-container">
-            <view class="item-details">
-              <view class="title-and-state">
-                <text class="title">{{item.title}}</text>
-                <view
-                  class="state"
-                  style="background-color: {{stateColors[item.state]}}; color: #fff"
-                >
-                  {{stateTag[item.state]}}
+        <block wx:if="{{rejectedList.length > 0}}">
+          <block wx:for="{{rejectedList}}" wx:key="link_id">
+            <view class="item-container">
+              <view class="item-details">
+                <view class="title-and-state">
+                  <text class="title">{{item.title}}</text>
+                  <view
+                    class="state"
+                    style="background-color: {{stateColors[item.state]}}; color: #fff"
+                  >
+                    {{stateTag[item.state]}}
+                  </view>
+                </view>
+                <text class="label">提交时间：</text>
+                <text class="content">{{item.formatted_time}}</text>
+                <text class="label">秀米链接：</text>
+                <view class="link">
+                  <text class="content">{{item.link}}</text>
+                  <image 
+                  class="copy-icon"
+                  src="/images/activitydetail/copy.svg"
+                  mode="widthFix"
+                  bind:tap="copy"
+                  data-link="{{item.link}}"
+                  ></image>
                 </view>
               </view>
-              <text class="label">提交时间：</text>
-              <text class="content">{{item.formatted_time}}</text>
-              <text class="label">秀米链接：</text>
-              <view class="link">
-                <text class="content">{{item.link}}</text>
-                <image 
-                class="copy-icon"
-                src="/images/activitydetail/copy.svg"
-                mode="widthFix"
-                bind:tap="copy"
-                data-link="{{item.link}}"
-                ></image>
+              <!-- 审核反馈信息 -->
+              <view class="feedback-container">
+                <view class="feedback-title">审核反馈</view>
+                <view class="feedback-content">{{item.review || '暂无反馈信息'}}</view>
               </view>
+              <view
+                class="detail-btn"
+                data-title="{{item.title}}"
+                data-name="{{item.name}}"
+                data-link="{{item.link}}"
+                data-link-id="{{item.link_id}}"
+                bindtap="navigateToDetail"
+              >修改</view>
             </view>
-            <!-- 审核反馈信息 -->
-            <view class="feedback-container">
-              <view class="feedback-title">审核反馈</view>
-              <view class="feedback-content">{{item.review || '暂无反馈信息'}}</view>
-            </view>
-            <view
-              class="detail-btn"
-              data-title="{{item.title}}"
-              data-name="{{item.name}}"
-              data-link="{{item.link}}"
-              data-link-id="{{item.link_id}}"
-              bindtap="navigateToDetail"
-            >修改</view>
+          </block>
+        </block>
+        <block wx:else>
+          <view class="empty-hint">
+            <text>(≧∀≦)ゞ\n还没有被打回的秀米链接哦~</text>
           </view>
         </block>
       </view>
@@ -114,47 +128,55 @@
     <!-- 已通过 -->
     <swiper-item>
       <view class="list-container">
-        <block wx:for="{{approvedList}}" wx:key="link_id">
-          <view class="item-container">
-            <view class="item-details">
-              <view class="title-and-state">
-                <text class="title">{{item.title}}</text>
-                <view
-                  class="state"
-                  style="background-color: {{stateColors[item.state]}}; color: #fff"
-                >
-                  {{stateTag[item.state]}}
+        <block wx:if="{{approvedList.length > 0}}">
+          <block wx:for="{{approvedList}}" wx:key="link_id">
+            <view class="item-container">
+              <view class="item-details">
+                <view class="title-and-state">
+                  <text class="title">{{item.title}}</text>
+                  <view
+                    class="state"
+                    style="background-color: {{stateColors[item.state]}}; color: #fff"
+                  >
+                    {{stateTag[item.state]}}
+                  </view>
+                </view>
+                <text class="label">提交时间：</text>
+                <text class="content">{{item.formatted_time}}</text>
+                <text class="label">秀米链接：</text>
+                <view class="link">
+                  <text class="content">{{item.link}}</text>
+                  <image 
+                  class="copy-icon"
+                  src="/images/activitydetail/copy.svg"
+                  mode="widthFix"
+                  bind:tap="copy"
+                  data-link="{{item.link}}"
+                  ></image>
                 </view>
               </view>
-              <text class="label">提交时间：</text>
-              <text class="content">{{item.formatted_time}}</text>
-              <text class="label">秀米链接：</text>
-              <view class="link">
-                <text class="content">{{item.link}}</text>
-                <image 
-                class="copy-icon"
-                src="/images/activitydetail/copy.svg"
+              <image
+                class="green-cat-pattern"
+                src="/images/pubulicity_work_page/cat_pattern.svg"
                 mode="widthFix"
-                bind:tap="copy"
-                data-link="{{item.link}}"
-                ></image>
-              </view>
+              />
             </view>
-            <image
-              class="green-cat-pattern"
-              src="/images/pubulicity_work_page/cat_pattern.svg"
-              mode="widthFix"
-            />
+          </block>
+        </block>
+        <block wx:else>
+          <view class="empty-hint">
+            <text>要加油哇\n还没有被通过的秀米链接哦~</text>
           </view>
         </block>
       </view>
     </swiper-item>
   </swiper>
-
   <!-- 底部装饰 -->
-  <image
-    class="bottom-image"
-    src="/images/object_borrow_list/white_cat.svg"
-    mode="widthFix"
-  />
+  <view class="cat-container">
+    <image
+      class="bottom-image"
+      src="/images/site_borrow_list/white_cat.svg"
+      mode="aspectFit"
+    />
+  </view>
 </view>
