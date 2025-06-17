@@ -27,6 +27,7 @@
       class="form-textarea {{isLinkFocused ? 'focused' : ''}}" 
       bindtap = "onLinkFocused" 
       bindblur = "onLinkBlur"
+      bindinput="onLinkInput"
       placeholder="请在此处输入秀米链接"
       data-field="link"
       value="{{formData.link}}">

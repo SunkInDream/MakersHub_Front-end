@@ -1,6 +1,6 @@
-// pages/xuimi_submit/xiumi_submit.js
+// pages/xiumi_submit/xiumi_submit.js
 const token = wx.getStorageSync('auth_token');
-const API_BASE = "http://146.56.227.73:8000";
+const API_BASE = "https://mini.makershub.cn";
 
 Page({
   data: {
@@ -10,16 +10,13 @@ Page({
       "name": '',
       "link": ''
     },
-    // 状态确定变量
-    isEdited: false,  // 识别修改状态还是新建提交状态
-    isValid: true,    // 识别是否可以提交
-    // 样式渲染需要的变量
+    isEdited: false,
+    isValid: true,
     isTitleFocused: false,
     isNameFocused: false,
     isLinkFocused: false
   },
 
-  // 页面加载时的逻辑
   onLoad(options) {
     if (options.link_id) {
       this.setData({
@@ -34,16 +31,20 @@ Page({
     console.log("formData passed: ", JSON.stringify(this.data.formData, null, 2));
   },
 
-  // 提交按钮
   onSubmit() {
     const { title, name, link } = this.data.formData;
 
-    // 简单非空校验
+    // 非空校验
     if (!title) return wx.showToast({ title: '请输入推文标题', icon: 'none' });
-    if (!name)  return wx.showToast({ title: '请输入制作人姓名', icon: 'none' });
-    if (!link)  return wx.showToast({ title: '请输入秀米链接', icon: 'none' });
+    if (!name) return wx.showToast({ title: '请输入制作人姓名', icon: 'none' });
+    if (!link) return wx.showToast({ title: '请输入秀米链接', icon: 'none' });
 
-    // 根据模式选择 URL 和 Method
+    // URL 格式校验（可选）
+    const urlPattern = /^https?:\/\/.+/;
+    if (!urlPattern.test(link)) {
+      return wx.showToast({ title: '请输入有效的秀米链接', icon: 'none' });
+    }
+
     const url = this.data.isEdited
       ? `${API_BASE}/publicity-link/update/${this.data.formData.link_id}`
       : `${API_BASE}/publicity-link/post`;
@@ -60,53 +61,57 @@ Page({
       success: res => {
         console.log('服务器返回：', res.data);
         wx.showToast({ title: this.data.isEdited ? '修改成功' : '提交成功', icon: 'success' });
-        // 编辑模式下可直接返回列表，新建模式下可清空表单
-        if (this.data.isEdited) {
-          wx.navigateBack({ delta: 1 });
-        } else {
-          this.setData({ formData: { title: '', name: '', link: '' } });
-        }
+
+        // 使用事件通道通知上一页刷新
+        const eventChannel = this.getOpenerEventChannel();
+        eventChannel.emit('refreshLinks', { success: true });
+
+        // 统一返回上一页
+        wx.navigateBack({ delta: 1 });
       },
       fail: err => {
         console.error('请求失败：', err);
+        console.log('后端错误详情：', err.response ? err.response.data : '无详细错误信息');
         wx.showToast({ title: '操作失败，请稍后重试', icon: 'none' });
       }
     });
   },
 
+  onTitleFocused() {
+    this.setData({ isTitleFocused: true });
+  },
+  onTitleBlur(e) {
+    this.setData({
+      isTitleFocused: false,
+      'formData.title': e.detail.value
+    });
+  },
 
- // Title输入框处理
-onTitleFocused() { 
-  this.setData({ isTitleFocused: true }); 
-},
-onTitleBlur(e) { 
-  this.setData({ 
-    isTitleFocused: false,
-    'formData.title': e.detail.value
-  });
-},
+  onNameFocused() {
+    this.setData({ isNameFocused: true });
+  },
+  onNameBlur(e) {
+    this.setData({
+      isNameFocused: false,
+      'formData.name': e.detail.value
+    });
+  },
 
-// Name输入框处理函数
-onNameFocused() { 
-  this.setData({ isNameFocused: true }); 
-},
-onNameBlur(e) { 
-  this.setData({ 
-    isNameFocused: false,
-    'formData.name': e.detail.value
-  });
-},
-
-// Link输入框处理函数
-onLinkFocused() { 
-  this.setData({ isLinkFocused: true }); 
-},
-onLinkBlur(e) { 
-  this.setData({ 
-    isLinkFocused: false,
-    'formData.link': e.detail.value
-  });
-},
+  onLinkFocused() {
+    this.setData({ isLinkFocused: true });
+  },
+  onLinkBlur(e) {
+    this.setData({
+      isLinkFocused: false,
+      'formData.link': e.detail.value.trim()
+    });
+  },
+  onLinkInput(e) {
+    console.log('textarea 输入值:', e.detail.value);
+    this.setData({
+      'formData.link': e.detail.value
+    });
+  },
 
   handlerGobackClick() {
     wx.showModal({
@@ -124,6 +129,5 @@ onLinkBlur(e) {
     wx.reLaunch({
       url: '/pages/index/index'
     });
-  },
-
+  }
 });

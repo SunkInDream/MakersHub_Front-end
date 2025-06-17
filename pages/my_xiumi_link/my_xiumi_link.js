@@ -1,7 +1,7 @@
 // pages/my_xiumi_list/my_xiumi_link.js
-const API_BASE = "http://146.56.227.73:8000";
+const API_BASE = "https://mini.makershub.cn";
 const token = wx.getStorageSync('auth_token');
-const DEBUG = true;
+const DEBUG = false;
 // 引入外部utils工具
 const utils = require("../../utils/util")
 
@@ -68,7 +68,7 @@ Page({
     if (DEBUG) {
       this.loadMockData();
     } else {
-      this.fetchMyLinks();
+      this.fetchLinks();
     }
   },
 
@@ -81,26 +81,6 @@ Page({
     this.setData({ tab: e.detail.current });
   },
 
-  // 拉取秀米链接列表
-  // 真正从后端拉数据的方法
-  fetchMyLinks() {
-    wx.request({
-      url: `${API_BASE}/publicity-link/view-my`,
-      method: 'GET',
-      header: { Authorization: `Bearer ${token}` },
-      success: res => {
-        if (res.data.code === 200) {
-          this.processList(res.data.data.list);
-        } else {
-          wx.showToast({ title: '获取失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        wx.showToast({ title: '网络错误', icon: 'none' });
-      }
-    });
-  },
-
   // 使用本地 mockData 调试的方法
   loadMockData() {
     const res = this.data.mockData;
@@ -110,6 +90,36 @@ Page({
       wx.showToast({ title: 'Mock 数据错误', icon: 'none' });
     }
   },
+
+    // 获取链接列表
+    fetchLinks() {
+      this.setData({ loading: true });
+      wx.request({
+        url: `${API_BASE}/publicity-link/view-my`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        success: res => {
+          console.log('获取链接列表：', res.data);
+          if (res.data.code === 200) {
+            this.setData({
+              links: res.data.data.list || [], // 提取 data.list
+              loading: false
+            });
+          } else {
+            wx.showToast({ title: res.data.message || '加载失败', icon: 'none' });
+            this.setData({ loading: false });
+          }
+        },
+        fail: err => {
+          console.error('获取链接失败：', err);
+          wx.showToast({ title: '网络错误，请稍后重试', icon: 'none' });
+          this.setData({ loading: false });
+        }
+      });
+    },
 
   // 统一处理列表：格式化时间 + 按 state 分组
   processList(list) {
@@ -153,18 +163,18 @@ Page({
     });
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  onShow() {
+    // 每次页面显示时刷新数据
+    this.fetchLinks();
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
+  // 监听 xiumi_submit 页面的事件
+  onReady() {
+    const eventChannel = this.getOpenerEventChannel();
+    eventChannel.on('refreshLinks', (data) => {
+      console.log('收到刷新事件：', data);
+      this.fetchLinks(); // 收到事件后刷新数据
+    });
   },
 
   /**

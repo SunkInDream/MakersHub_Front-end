@@ -1,7 +1,7 @@
 // pages/xiumi_link_permit/xiumi_link_permit.js
 const API_BASE = "http://146.56.227.73:8000";
 const token = wx.getStorageSync('auth_token');
-const DEBUG = true;
+const DEBUG = false;
 // 引入外部utils工具
 const utils = require("../../utils/util")
 
@@ -68,7 +68,7 @@ Page({
     if (DEBUG) {
       this.loadMockData();
     } else {
-      this.fetchMyLinks();
+      this.fetchAllLinks();
     }
   },
 
@@ -140,9 +140,9 @@ Page({
 
   // 拉取秀米链接列表
   // 真正从后端拉数据的方法
-  fetchMyLinks() {
+  fetchAllLinks() {
     wx.request({
-      url: `${API_BASE}/publicity-link/view-my`,
+      url: `${API_BASE}/publicity-link/view-all`,
       method: 'GET',
       header: { Authorization: `Bearer ${token}` },
       success: res => {
@@ -208,7 +208,7 @@ Page({
             success: (res) => {
               if (res.data.code === 200) {
                 wx.showToast({ title: '已通过', icon: 'success' });
-                this.fetchMyLinks();
+                this.fetchAllLinks();
               } else {
                 wx.showToast({ title: '通过失败', icon: 'none' });
               }
@@ -274,7 +274,7 @@ Page({
             success: (res) => {
               if (res.data.code === 200) {
                 wx.showToast({ title: '打回成功', icon: 'success' });
-                this.fetchMyLinks(); // 刷新列表
+                this.fetchAllLinks(); // 刷新列表
               } else {
                 wx.showToast({ title: '打回失败', icon: 'none' });
               }
