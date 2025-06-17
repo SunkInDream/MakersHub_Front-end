@@ -139,6 +139,7 @@
   </view>
 
   <!-- 审核区域 -->
+  <view wx:if="{{applyDetail.status === 2}}" class="return-btn" bindtap="onReturnClick">确认归还</view>
   <view class="reply-container" wx:if="{{!loading && applyDetail.status === 0}}">
     <textarea 
       class="form-input {{isLinkFocused ? 'focused' : ''}}" 

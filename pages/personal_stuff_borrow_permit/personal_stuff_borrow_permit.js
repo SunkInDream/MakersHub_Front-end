@@ -43,7 +43,93 @@ Page({
     console.log('[onLoad] 设置 borrowId 成功，开始加载详情');
     this.loadApplyDetail(borrowId);
   },
-
+  
+  
+  onReturnClick() {
+    const borrowId = this.data.borrowId;
+  
+    if (!borrowId || typeof borrowId !== 'string') {
+      wx.showToast({ title: '申请ID无效', icon: 'none' });
+      return;
+    }
+  
+    wx.showModal({
+      title: '确认归还',
+      content: `确认申请 ${borrowId} 的物资已归还？`,
+      success: res => {
+        if (res.confirm) {
+          this.returnStuff(borrowId);
+        }
+      }
+    });
+  },  
+  returnStuff(borrowId) {
+    console.log('[returnStuff] 开始处理归还请求');
+    console.log('[returnStuff] 接收到的 borrowId:', borrowId, '类型:', typeof borrowId);
+  
+    // 验证 borrowId
+    if (!borrowId || typeof borrowId !== 'string' || borrowId.trim() === '') {
+      wx.showToast({ title: '申请ID无效', icon: 'none' });
+      return;
+    }
+  
+    const validBorrowId = borrowId.trim();
+    console.log('[returnStuff] 验证通过的 borrowId:', validBorrowId);
+  
+    wx.showModal({
+      title: '确认归还',
+      content: `确认申请 ${validBorrowId} 的物资已归还？`,
+      success: res => {
+        if (res.confirm) {
+          // 获取 token
+          const token = wx.getStorageSync(TOKEN_KEY);
+          console.log('[returnStuff] 确认后获取的 token:', token, '类型:', typeof token);
+          
+          if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
+            wx.showToast({ title: '登录状态已失效，请重新登录', icon: 'none' });
+            return;
+          }
+  
+          // 发送请求
+          wx.showLoading({ title: '处理中...' });
+          
+          wx.request({
+            url: `${API_BASE}/stuff-borrow/return`,
+            method: 'POST',
+            data: {
+              borrow_id: validBorrowId,
+              return_notes: '物资已完好归还'
+            },
+            header: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            success: res => {
+              wx.hideLoading();
+              console.log('[returnStuff] 服务器响应:', res);
+  
+              if (res.statusCode === 200) {
+                wx.showToast({ title: '归还确认成功', icon: 'success' });
+                setTimeout(() => {
+                  wx.navigateBack(); // ✅ 自动跳转回上一个页面
+                }, 1500);
+              }
+               else if (res.statusCode === 401) {
+                wx.showToast({ title: '登录状态已失效，请重新登录', icon: 'none' });
+              } else {
+                wx.showToast({ title: res.data?.message || '操作失败', icon: 'none' });
+              }
+            },
+            fail: err => {
+              wx.hideLoading();
+              console.error('[returnStuff] 请求失败:', err);
+              wx.showToast({ title: '网络错误', icon: 'none' });
+            }
+          });
+        }
+      }
+    });
+  },
   loadApplyDetail(borrowId) {
     const token = wx.getStorageSync(TOKEN_KEY);
     if (!token) {

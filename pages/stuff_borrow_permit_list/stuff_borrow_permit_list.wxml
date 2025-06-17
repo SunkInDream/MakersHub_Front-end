@@ -23,6 +23,7 @@
     <!-- 通用 swiper-item 渲染函数：通过 wx:for 动态切换列表 -->
     <swiper-item wx:for="{{[unreviewedList, approvedList, returnedList]}}" wx:for-item="list" wx:for-index="tabIndex">
       <view class="list-container">
+        <block wx:if="{{list.length > 0}}">
         <block wx:for="{{list}}" wx:key="event_id" wx:for-index="idx">
           <view class="item-container">
             <view class="item-details">
@@ -44,7 +45,15 @@
             <view class="detail-btn"
                   wx:if="{{tabIndex === 1}}"
                   data-index="{{idx}}"
-                  bindtap="onReturnClick">归还</view>
+                  data-event-id="{{item.event_id}}"
+                  data-original-type="{{item.originalType}}"
+                  bindtap="navigateToDetail">归还</view>
+          </view>
+        </block>
+        </block>
+        <block wx:else>
+          <view class="empty-hint">
+            <text>(≧∀≦)ゞ\n所有东西了呢</text>
           </view>
         </block>
       </view>
