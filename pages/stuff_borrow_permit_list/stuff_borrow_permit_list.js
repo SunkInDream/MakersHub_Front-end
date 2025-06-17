@@ -72,8 +72,6 @@ Page({
       1: '/images/object_borrow_list/approved.png',
       2: '/images/object_borrow_list/borrowed.png',
       3: '/images/object_borrow_list/returned.png',
-      4: '/images/object_borrow_list/rejected.png',
-      5: '/images/object_borrow_list/overdue.png'
     };
 
     borrowList.forEach(item => {
@@ -102,11 +100,9 @@ Page({
 
       switch (item.state) {
         case 0: unreviewedList.push(record); break;
-        case 1:
+        case 1: rejectedList.push(record); break;
         case 2: approvedList.push(record); break;
         case 3: returnedList.push(record); break;
-        case 4: rejectedList.push(record); break;
-        case 5: overdueList.push(record); break;
         default: console.warn('未知状态:', item.state);
       }
     });
@@ -124,11 +120,9 @@ Page({
   mapStateToText(state) {
     switch (state) {
       case 0: return '待审批';
-      case 1: return '已批准';
+      case 1: return '已打回';
       case 2: return '已借出';
       case 3: return '已归还';
-      case 4: return '已拒绝';
-      case 5: return '已过期';
       default: return '未知状态';
     }
   },
