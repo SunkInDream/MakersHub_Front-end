@@ -139,24 +139,43 @@ Page({
   },
 
   onSwiperChange(e) {
-    this.setData({ tab: e.detail.current });
+    const item = e.detail.current;
+    if (item === 1) { // "借用中" tab
+      wx.showModal({
+        title: '归还提示',
+        content: '如欲归还，请线下找SCUMakers工作人员办理场地归还手续',
+        showCancel: false,
+        confirmText: '我已知晓',
+        confirmColor: '#00adb5',
+        success: (res) => {
+          if (res.confirm) {
+            // User clicked "我已知晓", keep the tab
+            this.setData({
+              tab: item
+            });
+          } else {
+            // Fallback in case something unexpected happens
+            this.setData({
+              tab: this.data.tab // Revert to previous tab if needed
+            });
+          }
+        }
+      });
+    } else {
+      // Update tab for other swiper changes
+      this.setData({
+        tab: item
+      });
+    }
   },
 
   handlerGobackClick() {
-    wx.showModal({
-      title: '你点击了返回',
-      content: '是否确认返回',
-      success: (e) => {
-        if (e.confirm) {
-          const pages = getCurrentPages();
-          if (pages.length >= 2) {
-            wx.navigateBack({ delta: 1 });
-          } else {
-            wx.reLaunch({ url: '/pages/index/index' });
-          }
-        }
-      }
-    });
+    const pages = getCurrentPages();
+    if (pages.length >= 2) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.reLaunch({ url: '/pages/index/index' });
+    }
   },
 
   handlerGohomeClick() {

@@ -8,6 +8,7 @@
   flex-direction: column;
   align-items: flex-start;
   overflow-y: auto;
+  height: 100vh;
 }
 
 .detail-container {
@@ -119,6 +120,33 @@
 .feedback-content {
   font-size: 28rpx;
   color: #E33C64;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* 归还提示容器 */
+.hint-container {
+  background-color: rgba(0, 173, 181, 0.1); /* #E33C64 变浅 */
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  margin-left: 25rpx;
+  margin-right: 25rpx;
+  text-align: center;
+  width: 85vw;
+  align-self: center;
+}
+
+.hint-title {
+  font-size: 32rpx;
+  color: #00adb5;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.hint-content {
+  font-size: 28rpx;
+  color: #00adb5;
   line-height: 1.6;
   word-wrap: break-word;
 }

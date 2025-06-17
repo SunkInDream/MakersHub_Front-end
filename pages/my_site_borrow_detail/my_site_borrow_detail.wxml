@@ -65,14 +65,17 @@
         <view class="feedback-content">{{apiData.review || '暂无反馈信息'}}</view>
       </view>
     </view>
+    <!--归还提示信息-->
+    <view wx:if="{{apiData.state === 2}}" class="hint-container">
+        <view class="hint-title">场地归还指路</view>
+        <view class="hint-content">请找SCUMakers工作人员办理场地归还手续</view>
+    </view>
+
     <!-- 操作按钮 -->
     <view wx:if="{{apiData.state === 0 || apiData.state === 1}}" class="action-buttons" >
         <view class="action-btn cancel-btn" bindtap="cancelApplication">取消申请</view>
         <view class="action-btn modify-btn" bindtap="modifyApplication">修改申请</view>
-      </view>
-      <view wx:if="{{apiData.state === 2}}" class="action-buttons" >
-        <view class="action-btn modify-btn" bindtap="returnSite">归还场地</view>
-      </view>
+    </view>
   </view>
   <image class="bottom-image" src="/images/activitydetail/cat_black.svg"></image>
 </view>

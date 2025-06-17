@@ -102,6 +102,9 @@
     </view>
   </view>
 
+  <!-- 操作按钮 -->
+  <view wx:if="{{apiData.state === 2}}" class="return-btn" bindtap="returnSite">确认归还</view>
+  
   <view class="reply-container" wx:if="{{apiData.state === 0 || apiData.state === 1}}">
     <textarea 
     class="form-input {{isReviewFocused ? 'focused' : ''}}" 

@@ -137,6 +137,60 @@ Page({
       }
     });
   },
+
+  // 归还场地
+  returnSite() {
+    wx.showModal({
+      title: '场地归还检查',
+      content: '确认检查无误，允许归还该场地？',
+      confirmColor: '#00adb5',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showLoading({
+            title: '归还中...',
+          });
+          wx.request({
+            url: `${API_BASE}/sites-borrow/return/${this.data.apiData.apply_id}`,
+            method: 'PATCH',
+            header: {
+              'content-type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            data: {}, // 无需额外数据，后端处理 state
+            success: (res) => {
+              if (res.data.code === 200) {
+                wx.showToast({
+                  title: '归还成功',
+                  icon: 'success',
+                  duration: 1500,
+                  success: () => {
+                    setTimeout(() => {
+                      wx.navigateBack();
+                    }, 1500);
+                  }
+                });
+              } else {
+                wx.showToast({
+                  title: res.data.message || '归还失败',
+                  icon: 'none'
+                });
+              }
+            },
+            fail: (err) => {
+              console.error('归还请求失败:', err);
+              wx.showToast({
+                title: '网络错误，请重试',
+                icon: 'none'
+              });
+            },
+            complete: () => {
+              wx.hideLoading();
+            }
+          });
+        }
+      }
+    });
+  },
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
@@ -186,20 +240,12 @@ Page({
 
   },
   handlerGobackClick() {
-    wx.showModal({
-      title: '你点击了返回',
-      content: '是否确认返回',
-      success: e => {
-        if (e.confirm) {
-          const pages = getCurrentPages();
-          if (pages.length >= 2) {
-            wx.navigateBack({ delta: 1 });
-          } else {
-            wx.reLaunch({ url: '/pages/index/index' });
-          }
-        }
-      }
-    });
+    const pages = getCurrentPages();
+    if (pages.length >= 2) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.reLaunch({ url: '/pages/index/index' });
+    }
   },
 
   handlerGohomeClick() {

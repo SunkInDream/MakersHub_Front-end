@@ -29,7 +29,7 @@
           <block wx:for="{{unpermittedList}}" wx:key="apply_id">
             <view class="item-container">
               <view class="item-details">
-                <text class="name">{{item.site}}  [编号{{item.number}}]</text>
+                <text class="name">{{item.site}}  [工位{{item.number}}]</text>
                 <text class="label">申请创建时间：</text>
                 <view class="time-and-state">
                   <text class="create-time">{{item.formatted_time}}</text>
@@ -55,7 +55,7 @@
           <block wx:for="{{borrowingList}}" wx:key="apply_id">
             <view class="item-container">
               <view class="item-details">
-                <text class="name">{{item.site}}  [编号{{item.number}}]</text>
+                <text class="name">{{item.site}}  [工位{{item.number}}]</text>
                 <text class="label">申请创建时间：</text>
                 <view class="time-and-state">
                   <text class="create-time">{{item.formatted_time}}</text>
@@ -81,7 +81,7 @@
           <block wx:for="{{returnedList}}" wx:key="apply_id">
             <view class="item-container">
               <view class="item-details">
-                <text class="name">{{item.site}}  [编号{{item.number}}]</text>
+                <text class="name">{{item.site}}  [工位{{item.number}}]</text>
                 <text class="label">申请创建时间：</text>
                 <view class="time-and-state">
                   <text class="create-time">{{item.formatted_time}}</text>
@@ -94,7 +94,9 @@
         </block>
         <block wx:else>
           <view class="empty-hint">
-            <text>这里还什么都没有哦\n记得归还场地喵~</text>
+            <text>
+              这里还什么都没有哦\n记得归还场地喵~
+            </text>
           </view>
         </block>
       </view>
@@ -107,7 +109,7 @@
           <block wx:for="{{cancelledList}}" wx:key="apply_id">
             <view class="item-container">
               <view class="item-details">
-                <text class="name">{{item.site}}  [编号{{item.number}}]</text>
+                <text class="name">{{item.site}}  [工位{{item.number}}]</text>
                 <text class="label">申请创建时间：</text>
                 <view class="time-and-state">
                   <text class="create-time">{{item.formatted_time}}</text>
@@ -120,7 +122,7 @@
         </block>
         <block wx:else>
           <view class="empty-hint">
-            <text>这里什么都没有哦</text>
+            <text>还没有取消的场地申请哦</text>
           </view>
         </block>
       </view>
