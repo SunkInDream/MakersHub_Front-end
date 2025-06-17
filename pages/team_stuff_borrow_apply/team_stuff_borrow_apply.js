@@ -295,8 +295,19 @@ Page({
         wx.hideLoading();
         if (res.statusCode === 200 || res.statusCode === 201) {
           wx.showToast({ title: '提交成功', icon: 'success' });
-          setTimeout(() => this.resetForm(), 1500);
-        } else {
+          setTimeout(() => {
+            this.resetForm();
+            wx.switchTab({
+              url: '/pages/index/index',
+              fail: () => {
+                wx.redirectTo({
+                  url: '/pages/index/index'
+                });
+              }
+            });
+          }, 1500);
+        }
+         else {
           wx.showToast({ title: res.data?.detail || '提交失败', icon: 'none' });
         }
       },
