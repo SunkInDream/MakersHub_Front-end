@@ -140,3 +140,29 @@
 .bottom-placeholder {
   height: 100rpx;  /* 根据需要的空白高度调整，例如 60rpx、80rpx、100rpx */
 }
+/* 审核反馈容器 */
+.feedback-container {
+  background-color: rgba(227, 60, 100, 0.1); /* #E33C64 变浅 */
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 40rpx;
+  margin-left: 25rpx;
+  margin-right: 25rpx;
+  text-align: center;
+  width: 85vw;
+  align-self: center;
+}
+
+.feedback-title {
+  font-size: 32rpx;
+  color: #E33C64;
+  font-weight: 600;
+  margin-bottom: 20rpx;
+}
+
+.feedback-content {
+  font-size: 28rpx;
+  color: #E33C64;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
