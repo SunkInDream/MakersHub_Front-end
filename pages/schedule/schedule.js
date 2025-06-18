@@ -136,6 +136,11 @@ Page({
   },
 
   handlerGobackClick() {
-    wx.navigateBack({ delta: 1 });
-  }
+    const pages = getCurrentPages();
+    if (pages.length >= 2) {
+      wx.navigateBack({ delta: 1 });
+    } else {
+      wx.reLaunch({ url: '/pages/publicity_work_page/publicity_work_page' });
+    }
+  },
 });
