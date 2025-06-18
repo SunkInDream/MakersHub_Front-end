@@ -15,36 +15,45 @@
     <view class="table-body">
       <view class="table-row" wx:for="{{tableData}}" wx:key="index">
         <!-- 活动文案列 -->
-        <input wx:if="{{isEditing}}" class="table-cell" value="{{item.script}}"
-               data-field="script" data-index="{{index}}" placeholder="请输入文案"
-               bindinput="onCellInput" />
-        <text wx:else class="table-cell">{{item.script}}</text>
-
+        <input wx:if="{{isEditing}}" class="table-cell {{item.script.current ? 'highlight' : ''}}"
+               value="{{item.script.name}}" data-field="script" data-index="{{index}}"
+               placeholder="请输入文案" bindinput="onCellInput" />
+        <!-- 将 text 改为 view -->
+        <view wx:else class="table-cell {{item.script.current ? 'highlight' : ''}}">
+          {{item.script.name}}
+        </view>
         <!-- 推文列 -->
-        <input wx:if="{{isEditing}}" class="table-cell" value="{{item.push}}"
-               data-field="push" data-index="{{index}}" placeholder="请输入推文"
-               bindinput="onCellInput" />
-        <text wx:else class="table-cell">{{item.push}}</text>
+        <input wx:if="{{isEditing}}" class="table-cell {{item.push.current ? 'highlight' : ''}}"
+               value="{{item.push.name}}" data-field="push" data-index="{{index}}"
+               placeholder="请输入推文" bindinput="onCellInput" />
+        <!-- 将 text 改为 view -->
+        <view wx:else class="table-cell {{item.push.current ? 'highlight' : ''}}">
+          {{item.push.name}}
+        </view>
 
         <!-- 新闻稿列 -->
-        <input wx:if="{{isEditing}}" class="table-cell" value="{{item.news}}"
-               data-field="news" data-index="{{index}}" placeholder="请输入新闻稿"
-               bindinput="onCellInput" />
-        <text wx:else class="table-cell">{{item.news}}</text>
+        <input wx:if="{{isEditing}}" class="table-cell {{item.news.current ? 'highlight' : ''}}"
+               value="{{item.news.name}}" data-field="news" data-index="{{index}}"
+               placeholder="请输入新闻稿" bindinput="onCellInput" />
+        <!-- 将 text 改为 view -->
+        <view wx:else class="table-cell {{item.news.current ? 'highlight' : ''}}">
+          {{item.news.name}}
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 编辑按钮 -->
-  <!-- <view class="edit-container edit" wx:if="{{!isEditing || level == 3}}" bindtap="toggleEdit">
-    <image class="icon-edit" src="/images/schedule/edit.svg"></image>
-  </view> -->
-
   <!-- 提交/取消按钮 -->
-  <!-- <view class="edit-container btn" wx:if="{{isEditing}}">
+  <view class="edit-container btn" wx:if="{{isEditing}}">
     <button style="width: 186.6rpx;" bindtap="submitEdit">提交</button>
     <button style="width: 186.6rpx;" bindtap="cancelEdit">取消</button>
-  </view> -->
+  </view>
+
+
+  <!-- 编辑按钮（非编辑状态显示） -->
+  <view class="edit-container edit" wx:if="{{!isEditing || level == 3}}" bindtap="toggleEdit">
+    <image class="icon-edit" src="/images/schedule/edit.svg"></image>
+  </view>
 
   <image class="bottom-image" src="/images/schedule/white_cat.svg" mode="widthFix" />
 </view>
