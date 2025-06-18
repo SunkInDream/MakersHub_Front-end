@@ -147,9 +147,17 @@ swiper-item {
   border-radius: 24rpx;
 }
 
+.button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 70%;
+}
+
 .detail-btn {
   display: flex;
-  width: 200rpx;
+  width: 180rpx;
   height: 70rpx;
   background: #00BAAD;
   color: #fff;

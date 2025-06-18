@@ -146,6 +146,58 @@ Page({
     });
   },
 
+  // 取消任务
+  cancelTask(e) {
+    const taskId = e.currentTarget.dataset.taskId;
+    const taskName = e.currentTarget.dataset.taskName; // 使用映射后的 task_name
+    
+    if (!taskId) {
+      wx.showToast({ title: '任务ID不能为空', icon: 'none' });
+      return;
+    }
+
+    // 确认对话框
+    wx.showModal({
+      title: '确认取消任务',
+      content: `确定要取消任务"${taskName}"吗？`,
+      cancelColor: '#00adb5', 
+      success: (res) => {
+        if (res.confirm) {
+          if (DEBUG) {
+            // 调试模式：模拟取消任务成功
+            wx.showToast({ title: '任务已取消', icon: 'success' });
+            // 刷新数据
+            this.loadMockData();
+          } else {
+            // 实际调用接口
+            wx.request({
+              url: `${API_BASE}/tasks/cancel/${taskId}`,
+              method: 'PATCH',
+              header: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              success: response => {
+                console.log('取消任务响应：', response.data);
+                if (response.data.code === 200) {
+                  wx.showToast({ title: '任务已取消', icon: 'success' });
+                  // 刷新任务列表
+                  this.fetchList();
+                } else {
+                  wx.showToast({ title: response.data.message || '取消任务失败', icon: 'none' });
+                }
+              },
+              fail: error => {
+                console.error('取消任务失败：', error);
+                wx.showToast({ title: '网络错误，请稍后重试', icon: 'none' });
+              }
+            });
+          }
+        }
+      }
+    });
+  },
+
   // 结束任务
   finishTask(e) {
     const taskId = e.currentTarget.dataset.taskId;

@@ -12,31 +12,41 @@
   </navBar>
 
   <view class="form-container">
-    
-    <text class="form-label">任务名称</text>
-    <input 
-      class="input-field {{isNameFocused ? 'focused' : ''}}" 
-      placeholder="请输入任务名称" 
-      data-field="task_name"
-      bindinput="onInput"
-      bindtap="onNameFocused" 
-      bindblur="onNameBlur"
-    />
+    <text class="form-label">任务类型</text>
+    <picker
+      class="input-field" 
+      mode="selector"
+      range="{{taskTypes}}"
+      range-key="label"
+      bindchange="onTaskTypeChange">
+      <view>{{selectedTaskType || '选择任务类型'}}</view>
+    </picker>
         
     <text class="form-label">负责人</text>
-    <input 
-      class="input-field {{isDirectorFocused ? 'focused' : ''}}" 
-      placeholder="请输入负责人" 
-      data-field="name"
-      bindinput="onInput"
-      bindtap="onDirectorFocused" 
-      bindblur="onDirectorBlur"
-    />
-        
+    <view class="person-select-group">
+      <picker
+        class="department-picker"
+        mode="selector"
+        range="{{departments}}"
+        range-key="label"
+        bindchange="onDepartmentChange">
+        <view>{{selectedDepartment || '选择部门'}}</view>
+      </picker>
+      <picker
+        range="{{currentMakers}}"
+        range-key="name"
+        class="director-picker {{isDirectorFocused ? 'focused' : ''}}" 
+        mode="selector"
+        bindchange="onMakerChange">
+        <view>{{selectedMaker || '选择负责人'}}</view>
+      </picker>
+    </view>
+
     <text class="form-label">任务内容</text>
     <textarea 
-      class="input-field textarea-field {{isDescriptionFocused ? 'focused' : ''}}" 
+      class="textarea-field {{isDescriptionFocused ? 'focused' : ''}}" 
       placeholder="请输入任务内容" 
+      value="{{apiData.content}}"
       data-field="content"
       bindinput="onInput"
       bindtap="onDescriptionFocused" 

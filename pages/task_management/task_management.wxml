@@ -48,17 +48,31 @@
                 <text class="label">截止时间：</text>
                 <text class="content">{{item.formatted_deadline}}</text>
               </view>
-              <view
-                class="detail-btn"
-                data-task-name="{{item.task_name}}"
-                data-task-id="{{item.task_id}}"
-                data-department="{{item.department}}"
-                data-maker-id="{{item.maker_id}}"
-                data-name="{{item.name}}"
-                data-content="{{item.content}}"
-                data-state="{{item.state}}"
-                bindtap="finishTask"
-              >结束</view>
+              <view class="button-container">
+                <view
+                  class="detail-btn"
+                  style="background-color: #e33c64;"
+                  data-task-name="{{item.task_name}}"
+                  data-task-id="{{item.task_id}}"
+                  data-department="{{item.department}}"
+                  data-maker-id="{{item.maker_id}}"
+                  data-name="{{item.name}}"
+                  data-content="{{item.content}}"
+                  data-state="{{item.state}}"
+                  bindtap="cancelTask"
+                >取消</view>
+                <view
+                  class="detail-btn"
+                  data-task-name="{{item.task_name}}"
+                  data-task-id="{{item.task_id}}"
+                  data-department="{{item.department}}"
+                  data-maker-id="{{item.maker_id}}"
+                  data-name="{{item.name}}"
+                  data-content="{{item.content}}"
+                  data-state="{{item.state}}"
+                  bindtap="finishTask"
+                >结束</view>
+              </view>
             </view>
           </block>
         </block>
