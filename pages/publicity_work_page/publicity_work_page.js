@@ -60,8 +60,11 @@ Page({
     navigateToXiumiLinkPermit() {
       wx.navigateTo({ url: '/pages/xiumi_link_permit/xiumi_link_permit' }) 
     },
-    navigateToTaskPost() {
-      wx.navigateTo({ url: '/pages/task/task' }) // 发布任务
+    navigateToMyTask() {
+      wx.navigateTo({ url: '/pages/my_task/my_task' }) // 我的任务
+    },
+    navigateToTaskManagement() {
+      wx.navigateTo({ url: '/pages/task_management/task_management' }) // 任务管理
     },
 
   

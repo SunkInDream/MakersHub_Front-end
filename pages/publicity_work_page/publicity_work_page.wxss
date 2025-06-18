@@ -15,6 +15,7 @@ page {
   background-color: #222831;
   min-height: 100vh;
   padding: 20rpx;
+  gap: 60rpx;
 }
 
 /* 公共的按钮容器样式 */
@@ -25,8 +26,6 @@ page {
   justify-content: space-between;
   border-radius: 36.624rpx;
   padding: 10rpx;
-  margin-top: 35rpx;
-  margin-bottom: 65rpx;
   cursor: pointer;
   width: 540rpx;
   height: 140rpx;

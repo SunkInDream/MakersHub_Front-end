@@ -24,6 +24,27 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/my_task/my_task",
+          "pathName": "pages/my_task/my_task",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/task_management/task_management",
+          "pathName": "pages/task_management/task_management",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/publicity_work_page/publicity_work_page",
+          "pathName": "pages/publicity_work_page/publicity_work_page",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/index/index",
           "pathName": "pages/index/index",
           "query": "",

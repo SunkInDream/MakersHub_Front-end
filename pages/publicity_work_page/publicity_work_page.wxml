@@ -35,7 +35,29 @@
     </view>
   </view>
 
-  <!-- 第4个容器：秀米链接审核 -->
+    <!-- 第4容器：我的任务 -->
+  <view class="button-container" bindtap="navigateToMyTask" wx:if="{{level >= 1}}">
+    <view class="left-image-container">
+      <image class="left-image" src="/images/pubulicity_work_page/checklist.svg" mode="aspectFit"></image>
+    </view>
+    <view class="text-container">我的任务</view>
+    <view class="arrow-container">
+      <image class="arrow-image" src="/images/pubulicity_work_page/icon_arrow_chevron-right_black.svg" mode="aspectFit"></image>
+    </view>
+  </view>
+
+    <!-- 第5容器：发布任务 -->
+  <view class="button-container" bindtap="navigateToTaskManagement" wx:if="{{level >= 2}}">
+    <view class="left-image-container">
+      <image class="left-image" src="/images/pubulicity_work_page/task.svg" mode="aspectFit"></image>
+    </view>
+    <view class="text-container">任务委派管理</view>
+    <view class="arrow-container">
+      <image class="arrow-image" src="/images/pubulicity_work_page/icon_arrow_chevron-right_white.svg" mode="aspectFit"></image>
+    </view>
+  </view>
+  
+  <!-- 第6个容器：秀米链接审核 -->
   <view class="button-container" bindtap="navigateToXiumiLinkPermit" wx:if="{{level >= 2}}">
     <view class="left-image-container">
       <image class="left-image" src="/images/pubulicity_work_page/permit_link.svg" mode="aspectFit"></image>
@@ -45,16 +67,7 @@
       <image class="arrow-image" src="/images/pubulicity_work_page/icon_arrow_chevron-right_black.svg" mode="aspectFit"></image>
     </view>
   </view>
-    <!-- 第5容器：发布任务 -->
-  <view class="button-container" bindtap="navigateToTaskPost" wx:if="{{level >= 2}}">
-    <view class="left-image-container">
-      <image class="left-image" src="/images/pubulicity_work_page/task.svg" mode="aspectFit"></image>
-    </view>
-    <view class="text-container">发布任务</view>
-    <view class="arrow-container">
-      <image class="arrow-image" src="/images/pubulicity_work_page/icon_arrow_chevron-right_white.svg" mode="aspectFit"></image>
-    </view>
-  </view>
+  
 </view>
 
 
