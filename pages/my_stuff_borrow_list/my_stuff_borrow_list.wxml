@@ -23,6 +23,7 @@
     <!-- 通用卡片渲染 -->
     <swiper-item wx:for="{{[list, borrowingList, returnedList, unpermittedList]}}" wx:for-index="tabIndex" wx:for-item="renderList">
       <view class="list-container">
+        <block wx:if="{{renderList.length > 0}}">
         <block wx:for="{{renderList}}" wx:key="sb_id">
           <view class="item-container"
                 data-sb-id="{{item.sb_id}}"
@@ -40,6 +41,12 @@
               </view>
             </view>
             <view class="detail-btn">详情</view>
+          </view>
+        </block>
+        </block>
+        <block wx:else>
+          <view class="empty-hint">
+            <text>(≧∀≦)ゞ\n所有东西了呢</text>
           </view>
         </block>
       </view>
