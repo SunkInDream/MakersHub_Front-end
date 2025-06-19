@@ -30,6 +30,7 @@ Page({
     currentMakersData: [],
     currentMakers: [],
     selectedTaskType: '',
+    selectedTaskTypeIndex: null,
     selectedDepartment: '',
     selectedMaker: '',
     years: Array.from({ length: 10 }, (_, i) => `${2024 + i}年`),
@@ -79,6 +80,7 @@ Page({
     try {
       await Promise.all([this.getMakersData(), this.getCurrentMakersData()]);
       const options = this.data.optionsCache;
+      console.log("options: ", options);
       if (!options) return;
 
       if (options.taskData) {
@@ -104,6 +106,7 @@ Page({
         this.setData({
           task_id: decodeURIComponent(options.task_id),
           isEditMode: true,
+          // taskTypeIndex = this.data.taskTypes.findIndex(t => t.value === task_type) || '',
           selectedTaskType: this.data.taskTypes.find(t => t.value === task_type)?.label || '',
           selectedDepartment: this.data.departments.find(d => d.value === department)?.label || '',
           selectedMaker: name,
@@ -197,12 +200,21 @@ Page({
   },
 
   populateFormData(data) {
-    const { task_type, department, maker_id, name, content, deadline } = data;
+    let { task_type, department, maker_id, name, content, deadline } = data;
+  
+    // ✅ 补充兼容处理：如果 task_type 是字符串如 “其他”，转换为数字
+    if (typeof task_type === 'string') {
+      const matched = this.data.taskTypes.find(t => t.label === task_type);
+      task_type = matched?.value ?? null;
+    }
+  
+    const taskTypeIndex = this.data.taskTypes.findIndex(t => t.value === task_type);
     const deadlineDate = new Date(deadline);
     const isValidDate = d => d instanceof Date && !isNaN(d);
-
+  
     this.setData({
-      selectedTaskType: this.data.taskTypes.find(t => t.value === task_type)?.label || '',
+      selectedTaskType: this.data.taskTypes[taskTypeIndex]?.label || '',
+      selectedTaskTypeIndex: taskTypeIndex,
       selectedDepartment: this.data.departments.find(d => d.value === department)?.label || '',
       selectedMaker: name,
       selectedYear: isValidDate(deadlineDate) ? `${deadlineDate.getFullYear()}年` : '',
@@ -212,26 +224,28 @@ Page({
       selectedMinute: isValidDate(deadlineDate) ? `${deadlineDate.getMinutes()}分` : '',
       apiData: {
         task_type,
-        name,
         department,
         maker_id,
+        name,
         content,
         deadline
       }
     });
-
+  
     this.updateCurrentMakersByDepartment(department);
-  },
+  },  
 
   onTaskTypeChange(e) {
     const taskTypeIndex = parseInt(e.detail.value);
     const taskType = this.data.taskTypes[taskTypeIndex];
     this.setData({
       selectedTaskType: taskType.label,
+      selectedTaskTypeIndex: taskTypeIndex,
       apiData: { ...this.data.apiData, task_type: taskType.value }
     });
     this.loadCurrentMakerByTaskType(taskType.value);
   },
+  
 
   loadCurrentMakerByTaskType(taskType) {
     const currentMaker = this.data.currentMakersData.find(m => m.task_type === taskType);

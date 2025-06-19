@@ -268,7 +268,7 @@ Page({
   
     const taskDetail = {
       task_id: item.taskId,
-      task_type: item.taskName,
+      task_type: item.taskType, // ✔ 这里应为 0/1/2/3 之类的数字
       department: item.department,
       maker_id: item.makerId,
       name: item.name,
@@ -277,7 +277,6 @@ Page({
     };
     
     const query = encodeURIComponent(JSON.stringify({ code: 200, data: taskDetail }));
-    console.log("query:",taskDetail);
     wx.navigateTo({
       url: `/pages/task/task?taskData=${query}`
     });
